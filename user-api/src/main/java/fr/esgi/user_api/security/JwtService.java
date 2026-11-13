@@ -2,6 +2,7 @@ package fr.esgi.user_api.security;
 
 import org.springframework.stereotype.Service;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -25,12 +26,20 @@ public class JwtService {
 
     public String generateToken(Long userId, String role) {
         return Jwts.builder()
-                .subject(userId.toString())                                   // user ID as subject
-                .claim("role", role)                                          // user role
-                .issuedAt(new Date())                                         // iat (created at)
-                .expiration(new Date(System.currentTimeMillis() + 86400000))  // exp (expiration after 24 hours)
+                .subject(userId.toString())
+                .claim("role", role)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + 86400000))
                 .signWith(getSigningKey())
                 .compact();
+    }
+
+    public Claims parseToken(String token) {
+        return Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
 }

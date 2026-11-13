@@ -8,8 +8,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import fr.esgi.user_api.dto.request.LoginRequest;
 import fr.esgi.user_api.dto.request.UserRegistrationRequest;
-import fr.esgi.user_api.dto.response.UserResponse;
+import fr.esgi.user_api.dto.response.AuthenticationResponse;
 import fr.esgi.user_api.services.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,10 +23,15 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping ("/register")
-    public ResponseEntity<UserResponse> registerUser(@Valid @RequestBody UserRegistrationRequest request) {
-        UserResponse response = userService.registerUser(request);
-        URI location = URI.create("/api/users/" + response.getId());
+    public ResponseEntity<AuthenticationResponse> registerUser(@Valid @RequestBody UserRegistrationRequest request) {
+        AuthenticationResponse response = userService.registerUser(request);
+        URI location = URI.create("/api/users/" + response.getUser().getId());
         return ResponseEntity.created(location).body(response);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<AuthenticationResponse> login(@Valid @RequestBody LoginRequest request) {
+        return ResponseEntity.ok(userService.login(request));
     }
     
 }

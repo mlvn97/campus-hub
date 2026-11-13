@@ -1,9 +1,7 @@
 package fr.esgi.user_api.dto.request;
 
-import fr.esgi.user_api.enums.UserRole;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -25,8 +23,5 @@ public class UserRegistrationRequest {
     @NotBlank (message = "Le mot de passe est obligatoire.")
     @Size (min = 6, max = 100, message = "Le mot de passe doit contenir entre 6 et 100 caractères.")
     private String password;
-
-    @NotNull (message = "Le rôle est obligatoire.")
-    private UserRole role;
 
 }
