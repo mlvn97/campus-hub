@@ -7,10 +7,10 @@ import fr.esgi.user_api.dto.response.UserResponse;
 import fr.esgi.user_api.exceptions.EmailAlreadyUsedException;
 import fr.esgi.user_api.models.User;
 import fr.esgi.user_api.repositories.UserRepository;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 @Service 
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class UserService {
     
     private final UserRepository userRepository;

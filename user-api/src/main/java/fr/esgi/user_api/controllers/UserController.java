@@ -5,16 +5,18 @@ import java.net.URI;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import fr.esgi.user_api.dto.request.UserRegistrationRequest;
 import fr.esgi.user_api.dto.response.UserResponse;
 import fr.esgi.user_api.services.UserService;
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
-@RestController ("/api/users")
-@AllArgsConstructor 
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/users")
 public class UserController {
 
     private final UserService userService;
