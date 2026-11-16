@@ -2,6 +2,7 @@ package fr.esgi.association_api.config;
 
 import java.util.List;
 
+import org.springframework.http.HttpMethod;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -33,6 +34,12 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                     .requestMatchers("/actuator/health").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/associations/*/members")
+                        .hasAnyRole("ADMIN_ASSOCIATION", "ADMIN_CAMPUS")
+                    .requestMatchers(HttpMethod.DELETE, "/api/associations/*/members/*")
+                        .hasAnyRole("ADMIN_ASSOCIATION", "ADMIN_CAMPUS")
+                    .requestMatchers(HttpMethod.PATCH, "/api/associations/*/members/*/role")
+                        .hasAnyRole("ADMIN_ASSOCIATION", "ADMIN_CAMPUS")
                     .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)

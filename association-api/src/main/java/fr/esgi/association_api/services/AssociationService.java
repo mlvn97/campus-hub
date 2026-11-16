@@ -12,6 +12,8 @@ import fr.esgi.association_api.enums.AssociationCategory;
 import fr.esgi.association_api.enums.AssociationStatus;
 import fr.esgi.association_api.exceptions.AssociationNotFoundException;
 import fr.esgi.association_api.repositories.AssociationRepository;
+import fr.esgi.association_api.repositories.MembershipApplicationRepository;
+import fr.esgi.association_api.repositories.MembershipRepository;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -19,6 +21,8 @@ import lombok.RequiredArgsConstructor;
 public class AssociationService {
 
     private final AssociationRepository associationRepository;
+    private final MembershipRepository membershipRepository;
+    private final MembershipApplicationRepository membershipApplicationRepository;
 
     @Transactional(readOnly = true)
     public Page<AssociationResponse> getAssociations(
@@ -67,7 +71,10 @@ public class AssociationService {
 
     @Transactional
     public void deleteAssociation(Long id) {
-        associationRepository.delete(findAssociation(id));
+        Association association = findAssociation(id);
+        membershipApplicationRepository.deleteAllByAssociationId(id);
+        membershipRepository.deleteAllByAssociationId(id);
+        associationRepository.delete(association);
     }
 
     private Association findAssociation(Long id) {

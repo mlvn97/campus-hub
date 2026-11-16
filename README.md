@@ -32,8 +32,11 @@ Elle permet:
 Gestion de la vie des associations étudiantes, leurs membres et les demandes d'adhésion.
 Elle permet:
 - CRUD complet sur les associations
-- la gestion des membres (ajouter, retirer, changer le rôle)
-- la soumission, l'acceptation ou le refus d'une demande d'adhésion
+- la gestion des membres (ajouter, retirer, changer le rôle), réservée aux rôles `ADMIN_ASSOCIATION` et `ADMIN_CAMPUS`
+- la soumission d'une demande d'adhésion, dont l'acceptation ou le refus est réservé au président de l'association
+- le départ du président, nécessitant la désignation d'un successeur membre de l'association
+- une seule demande d'adhésion en attente par étudiant et par association
+- un utilisateur ne peut être président que d'une seule association à la fois
 - accéder à la liste des associations (paginée et filtrable par catégorie et statut)
 - accéder à la liste des membres d'une association
 
