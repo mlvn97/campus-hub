@@ -48,6 +48,18 @@ public class GlobalExceptionHandler {
             .build()
         );
     }
+
+    @ExceptionHandler (ForbiddenException.class)
+    public ResponseEntity<ErrorResponse> handleForbiddenException(ForbiddenException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+            ErrorResponse.builder()
+            .status(403)
+            .error("Forbidden")
+            .message(ex.getMessage())
+            .timestamp(LocalDateTime.now())
+            .build()
+        );
+    }
     
     @ExceptionHandler (EmailAlreadyUsedException.class)
     public ResponseEntity<ErrorResponse> handleEmailAlreadyExistsException(EmailAlreadyUsedException ex) {
@@ -55,6 +67,18 @@ public class GlobalExceptionHandler {
             ErrorResponse.builder()
             .status(409)
             .error("Conflict")
+            .message(ex.getMessage())
+            .timestamp(LocalDateTime.now())
+            .build()
+        );
+    }
+
+    @ExceptionHandler (ResourceNotFound.class)
+    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFound ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+            ErrorResponse.builder()
+            .status(404)
+            .error("Not Found")
             .message(ex.getMessage())
             .timestamp(LocalDateTime.now())
             .build()

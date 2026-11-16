@@ -28,15 +28,16 @@ import lombok.NoArgsConstructor;
  */
 @Entity 
 @Table (name = "profiles")
-@AllArgsConstructor 
-@NoArgsConstructor 
 @Data 
+@AllArgsConstructor
+@NoArgsConstructor
 public class Profile {
 
     @Id 
     @GeneratedValue (strategy = jakarta.persistence.GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true)
     private Long userId;
     
     @Size (max = 300)
@@ -47,6 +48,6 @@ public class Profile {
 
     @CreationTimestamp 
     @Column (updatable = false)
-    private LocalDateTime created_at;
+    private LocalDateTime createdAt;
     
 }

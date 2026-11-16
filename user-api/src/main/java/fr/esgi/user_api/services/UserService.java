@@ -2,6 +2,7 @@ package fr.esgi.user_api.services;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import fr.esgi.user_api.dto.request.LoginRequest;
 import fr.esgi.user_api.dto.request.UserRegistrationRequest;
@@ -20,15 +21,18 @@ import lombok.RequiredArgsConstructor;
 public class UserService {
     
     private final UserRepository userRepository;
+    private final ProfileService profileService;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
+    @Transactional
     public AuthenticationResponse registerUser(UserRegistrationRequest request) {
         if (userRepository.existsByEmail(request.getEmail()))
             throw new EmailAlreadyUsedException("L'email est déjà utilisé.");
 
-        User user = toEntity(request);
-        return toAuthenticationResponse(userRepository.save(user));
+        User user = userRepository.save(toEntity(request));
+        profileService.create(user.getId());
+        return toAuthenticationResponse(user);
     }
 
     public AuthenticationResponse login(LoginRequest request) {
