@@ -13,6 +13,7 @@ import fr.esgi.association_api.entities.Membership;
 import fr.esgi.association_api.enums.MemberRole;
 import fr.esgi.association_api.exceptions.AlreadyPresidentException;
 import fr.esgi.association_api.exceptions.AssociationNotFoundException;
+import fr.esgi.association_api.exceptions.ForbiddenException;
 import fr.esgi.association_api.exceptions.InvalidSuccessorException;
 import fr.esgi.association_api.exceptions.MembershipAlreadyExistsException;
 import fr.esgi.association_api.exceptions.MembershipNotFoundException;
@@ -36,6 +37,16 @@ public class MembershipService {
                 .stream()
                 .map(this::toResponse)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public void requireEventManagementAccess(Long associationId, Long userId) {
+        requireAssociation(associationId);
+        // Seul le président authentifié peut modifier les événements de cette association.
+        if (!membershipRepository.existsByAssociationIdAndUserIdAndRole(
+                associationId, userId, MemberRole.PRESIDENT)) {
+            throw new ForbiddenException("Seul le président de l'association peut modifier ses événements.");
+        }
     }
 
     @Transactional
