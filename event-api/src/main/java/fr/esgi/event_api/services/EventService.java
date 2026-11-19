@@ -2,10 +2,12 @@ package fr.esgi.event_api.services;
 
 import org.springframework.stereotype.Service;
 
+import fr.esgi.event_api.client.AssociationClient;
 import fr.esgi.event_api.dto.request.EventRequest;
 import fr.esgi.event_api.dto.request.UpdateEventRequest;
 import fr.esgi.event_api.dto.response.EventResponse;
 import fr.esgi.event_api.entities.Event;
+import fr.esgi.event_api.enums.EventStatus;
 import fr.esgi.event_api.exceptions.ForbiddenException;
 import fr.esgi.event_api.exceptions.ResourceNotFound;
 import fr.esgi.event_api.repositories.EventRepository;
@@ -16,7 +18,7 @@ import lombok.RequiredArgsConstructor;
 public class EventService {
     
     private final EventRepository eventRepository;
-    private final AssociationAuthorizationClient associationAuthorizationClient;
+    private final AssociationClient associationClient;
 
     public EventResponse getById(Long id) {
         return toResponse(find(id));
@@ -30,7 +32,8 @@ public class EventService {
     public EventResponse update(UpdateEventRequest request, Long eventId, String authorization) {
         Event event = find(eventId);
         // Utilise l'association enregistrée, et non un identifiant fourni dans le PATCH.
-        associationAuthorizationClient.requireEventManagementAccess(event.getAssociationId(), authorization);
+        if (!associationClient.canManageEvent(event.getAssociationId(), authorization))
+            throw new ForbiddenException("Vous ne pouvez pas modifier cet événement.");
         
         if (request.getTitle() != null) event.setTitle(request.getTitle());
         if (request.getDescription() != null) event.setDescription(request.getDescription());
@@ -47,6 +50,14 @@ public class EventService {
             throw new ForbiddenException("Une association peut seulement supprimer ses propres événements.");
         
         eventRepository.delete(event);
+    }
+
+    public EventResponse cancelEvent(Long eventId, String authorization) {
+        Event event = find(eventId);
+        if (!associationClient.canManageEvent(event.getAssociationId(), authorization))
+            throw new ForbiddenException("Vous ne pouvez pas annuler cet événement.");
+        event.setStatus(EventStatus.CANCELLED);
+        return toResponse(eventRepository.save(event));
     }
 
     private Event find(Long id) {

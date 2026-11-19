@@ -3,6 +3,9 @@ package fr.esgi.event_api.controllers;
 import java.net.URI;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -45,4 +48,13 @@ public class EventController {
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
         return ResponseEntity.ok(eventService.update(request, id, authorization));
     }
+
+    @PreAuthorize ("hasRole('ROLE_ADMIN_ASSOCIATION')")
+    @PatchMapping ("/{id}/cancel")
+    public ResponseEntity<EventResponse> cancelEvent(
+            @PathVariable Long id,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
+        return ResponseEntity.ok(eventService.cancelEvent(id, authorization));
+    }
+
 }

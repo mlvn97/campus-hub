@@ -47,15 +47,6 @@ public class AssociationController {
         return ResponseEntity.ok(associationService.getAssociation(id));
     }
 
-    // L'API événements appelle cette route avec le JWT de l'utilisateur à autoriser.
-    @GetMapping("/{id}/event-management-access")
-    public ResponseEntity<Void> checkEventManagementAccess(
-            @PathVariable Long id,
-            @AuthenticationPrincipal Long userId) {
-        membershipService.requireEventManagementAccess(id, userId);
-        return ResponseEntity.noContent().build();
-    }
-
     @PostMapping
     public ResponseEntity<AssociationResponse> createAssociation(
             @Valid @RequestBody AssociationRequest request) {

@@ -1,6 +1,6 @@
 package fr.esgi.event_api.dto.request;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import fr.esgi.event_api.enums.EventStatus;
 import jakarta.validation.constraints.NotBlank;
@@ -27,7 +27,7 @@ public class EventRequest {
     private String description;
 
     @NotNull(message = "La date de l'événement est obligatoire.")
-    private Date date;
+    private LocalDateTime date;
 
     @NotBlank(message = "Le lieu de l'événement est obligatoire.")
     private String location;

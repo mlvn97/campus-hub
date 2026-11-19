@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -59,5 +60,10 @@ public class MembershipController {
             @PathVariable Long userId,
             @Valid @RequestBody ChangeMemberRoleRequest request) {
         return ResponseEntity.ok(membershipService.changeMemberRole(associationId, userId, request));
+    }
+
+    @GetMapping ("/can-manage")
+    public boolean canManageAssociation(@PathVariable Long associationId, @AuthenticationPrincipal  Long userId) {
+        return membershipService.isAdminOf(associationId, userId);
     }
 }

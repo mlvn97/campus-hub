@@ -1,6 +1,6 @@
 package fr.esgi.event_api.entities;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import fr.esgi.event_api.enums.EventStatus;
 import jakarta.persistence.Column;
@@ -35,7 +35,7 @@ public class Event {
     private String description;
 
     @Column(nullable = false)
-    private Date date;
+    private LocalDateTime date;
 
     @Column(nullable = false)
     private String location;

@@ -1,7 +1,7 @@
 package fr.esgi.event_api.enums;
 
-public enum InscriptionStatus {
+public enum RegistrationStatus {
     CONFIRMED,
     PENDING,
-    CANCELED
+    CANCELLED
 }

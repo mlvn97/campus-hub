@@ -39,16 +39,6 @@ public class MembershipService {
                 .toList();
     }
 
-    @Transactional(readOnly = true)
-    public void requireEventManagementAccess(Long associationId, Long userId) {
-        requireAssociation(associationId);
-        // Seul le président authentifié peut modifier les événements de cette association.
-        if (!membershipRepository.existsByAssociationIdAndUserIdAndRole(
-                associationId, userId, MemberRole.PRESIDENT)) {
-            throw new ForbiddenException("Seul le président de l'association peut modifier ses événements.");
-        }
-    }
-
     @Transactional
     public MembershipResponse addMember(Long associationId, AddMemberRequest request) {
         requireAssociation(associationId);
@@ -114,6 +104,10 @@ public class MembershipService {
         }
         membership.setRole(request.getRole());
         return toResponse(membershipRepository.save(membership));
+    }
+
+    public boolean isAdminOf(Long associationId, Long userId) {
+        return membershipRepository.existsByAssociationIdAndUserIdAndRole(associationId, userId, MemberRole.PRESIDENT);
     }
 
     private void requireAssociation(Long associationId) {

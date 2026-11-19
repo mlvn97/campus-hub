@@ -5,5 +5,5 @@ public enum EventStatus {
     POSTED,
     COMPLETE,
     OVER,
-    CANCELED
+    CANCELLED
 }

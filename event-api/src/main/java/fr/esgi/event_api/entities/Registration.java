@@ -2,7 +2,7 @@ package fr.esgi.event_api.entities;
 
 import java.time.LocalDateTime;
 
-import fr.esgi.event_api.enums.InscriptionStatus;
+import fr.esgi.event_api.enums.RegistrationStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -16,11 +16,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity 
-@Table (name = "inscriptions")
+@Table (name = "registrations")
 @Data 
 @AllArgsConstructor 
 @NoArgsConstructor 
-public class Inscription {
+public class Registration {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,6 +37,6 @@ public class Inscription {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private InscriptionStatus status;
+    private RegistrationStatus status;
 
 }

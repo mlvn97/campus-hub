@@ -1,6 +1,6 @@
 package fr.esgi.event_api.dto.response;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import fr.esgi.event_api.enums.EventStatus;
 import lombok.AllArgsConstructor;
@@ -16,7 +16,7 @@ public class EventResponse {
     private Long associationId;
     private String title;
     private String description;
-    private Date date;
+    private LocalDateTime date;
     private String location;
     private Integer capacity;
     private EventStatus status;
