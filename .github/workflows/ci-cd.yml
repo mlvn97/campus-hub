@@ -110,7 +110,7 @@ jobs:
         run: |
           cd /opt/campus-hub
           IMAGE_TAG=${{ github.sha }} docker compose pull
-          IMAGE_TAG=${{ github.sha }} docker compose up -d --remove-orphans"
+          IMAGE_TAG=${{ github.sha }} docker compose up -d --remove-orphans
 
       - name: Check containers
         run: |
