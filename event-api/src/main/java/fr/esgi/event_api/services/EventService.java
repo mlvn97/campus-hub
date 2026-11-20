@@ -1,5 +1,9 @@
 package fr.esgi.event_api.services;
 
+import java.time.LocalDateTime;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import fr.esgi.event_api.client.AssociationClient;
@@ -53,6 +57,12 @@ public class EventService {
         assertCanManageEvent(find(eventId), authorization);
         EventResponse response = changeEventStatus(eventId, normalizeStatus(state));
         return response;
+    }
+
+    public Page<EventResponse> filterEvents(EventStatus status, Long associationId, LocalDateTime date, Pageable pageable) {
+        return eventRepository
+                .findAll(EventSpecification.withFilters(status, associationId, date), pageable)
+                .map(this::toResponse);
     }
 
     /**

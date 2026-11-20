@@ -92,8 +92,6 @@ public class RegistrationService {
         return registrations == e.getCapacity();
     }
 
-    // TODO: Filtrage des événements par status, association, date de début et de fin
-
     private Registration find(Long id) {
         return registrationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFound("Inscription n°" + id + " introuvable"));
