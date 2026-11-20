@@ -99,34 +99,19 @@ jobs:
   # 3. Déploiement sur EC2
   deploy:
     needs: build-and-push
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configure SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H "${{ secrets.EC2_HOST }}" >> ~/.ssh/known_hosts
-
-      - name: Prepare deployment directory
-        run: |
-          ssh -i ~/.ssh/id_rsa \
-            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} \
-            "mkdir -p /opt/campus-hub"
-
-      - name: Copy Docker Compose
-        run: |
-          scp -i ~/.ssh/id_rsa docker-compose.yml \
-            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/opt/campus-hub/docker-compose.yml
-
       - name: Deploy
         run: |
-          ssh -i ~/.ssh/id_rsa \
-            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} \
-            "cd /opt/campus-hub &&
-             IMAGE_TAG=${{ github.sha }} docker compose pull &&
-             IMAGE_TAG=${{ github.sha }} docker compose up -d --remove-orphans"
+          cd /opt/campus-hub
+          IMAGE_TAG=${{ github.sha }} docker compose pull
+          IMAGE_TAG=${{ github.sha }} docker compose up -d --remove-orphans"
+
+      - name: Check containers
+        run: |
+          cd /opt/campus-hub
+          docker compose ps
