@@ -19,16 +19,31 @@ jobs:
     strategy:
       matrix:
         service:
-          - user-api
-          - association-api
-          - event-api
-          - news-api
+            - user-api
+            - association-api
+            - event-api
+            - news-api
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: campus_hub_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d campus_hub_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Java
+      - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -36,8 +51,13 @@ jobs:
           cache: maven
 
       - name: Run tests
-        working-directory: ${{ matrix.service }}
-        run: mvn -B test
+        working-directory: ./${{ matrix.service }}
+        run: mvn clean test
+        env:
+          DB_URL: jdbc:postgresql://localhost:5432/campus_hub_test
+          DB_USERNAME: postgres
+          DB_PASSWORD: postgres
+          JWT_SECRET: test-secret-key-for-ci-only
 
   # 2. Build et publication des images Docker
   build-and-push:
