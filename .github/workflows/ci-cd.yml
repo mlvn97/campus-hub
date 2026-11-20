@@ -71,6 +71,7 @@ jobs:
           - association-api
           - event-api
           - news-api
+          - frontend
 
     steps:
       - name: Checkout
