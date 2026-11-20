@@ -64,6 +64,6 @@ public class MembershipController {
 
     @GetMapping ("/can-manage")
     public boolean canManageAssociation(@PathVariable Long associationId, @AuthenticationPrincipal  Long userId) {
-        return membershipService.isAdminOf(associationId, userId);
+        return membershipService.isPresidentOf(associationId, userId);
     }
 }

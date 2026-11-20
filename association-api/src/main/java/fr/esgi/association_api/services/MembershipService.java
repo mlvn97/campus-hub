@@ -106,7 +106,7 @@ public class MembershipService {
         return toResponse(membershipRepository.save(membership));
     }
 
-    public boolean isAdminOf(Long associationId, Long userId) {
+    public boolean isPresidentOf(Long associationId, Long userId) {
         return membershipRepository.existsByAssociationIdAndUserIdAndRole(associationId, userId, MemberRole.PRESIDENT);
     }
 

@@ -6,8 +6,8 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
-import fr.esgi.event_api.dto.response.EventResponse;
 import fr.esgi.event_api.dto.response.RegistrationResponse;
+import fr.esgi.event_api.entities.Event;
 import fr.esgi.event_api.entities.Registration;
 import fr.esgi.event_api.enums.EventStatus;
 import fr.esgi.event_api.enums.RegistrationStatus;
@@ -26,7 +26,7 @@ public class RegistrationService {
     private final RegistrationRepository registrationRepository;
 
     public RegistrationResponse registerToEvent(Long userId, Long eventId) {
-        EventResponse event = eventService.getById(eventId);
+        Event event = eventService.find(eventId);
 
         EventStatus status = event.getStatus();
         if (status == EventStatus.CANCELLED || status == EventStatus.DRAFT)
@@ -41,16 +41,17 @@ public class RegistrationService {
             throw new AlreadyRegisteredException();
         
         RegistrationStatus registrationStatus = RegistrationStatus.CONFIRMED;
-        Integer registrations = registrationRepository.countByEventIdAndStatus(eventId, registrationStatus);
-        if (registrations == event.getCapacity())
+        if (eventIsComplete(event)) {
             registrationStatus = RegistrationStatus.PENDING;
+            eventService.changeEventStatus(eventId, EventStatus.COMPLETE);
+        }
 
         Registration registration = new Registration(null, userId, eventId, LocalDateTime.now(), registrationStatus);
         return toResponse(registrationRepository.save(registration));
     }
 
-    public RegistrationResponse cancelRegistration(Long userId, Long eventId) {
-        Registration registration = find(eventId);
+    public RegistrationResponse cancelRegistration(Long userId, Long eventId, Long registrationId) {
+        Registration registration = find(registrationId);
         RegistrationStatus oldStatus = registration.getStatus();
         registration.setStatus(RegistrationStatus.CANCELLED);
 
@@ -60,11 +61,16 @@ public class RegistrationService {
         else {
             Optional<Registration> optFirstPending =
                 registrationRepository.findFirstByEventIdAndStatusOrderByRegistrationDateAsc(eventId, RegistrationStatus.PENDING);
+
+            // Le premier de la liste, s'il existe, devient confirmé et l'événement reste complet
             if (optFirstPending.isPresent()) {
                 Registration firstPending = optFirstPending.get();
                 firstPending.setStatus(RegistrationStatus.CONFIRMED);
                 return toResponse(registrationRepository.save(firstPending));
             }
+
+            // Sinon l'événement repasse en status POSTED
+            eventService.changeEventStatus(eventId, EventStatus.POSTED);
             return toResponse(registrationRepository.save(registration));
         }
     }
@@ -73,6 +79,17 @@ public class RegistrationService {
         List<RegistrationStatus> statuses = List.of(RegistrationStatus.CONFIRMED, RegistrationStatus.PENDING);
         List<Registration> registrations = registrationRepository.findByEventIdAndStatusIn(eventId, statuses);
         return registrations.stream().map(this::toResponse).toList();
+    }
+
+    /**
+     * Vérifie si un événement est complet.
+     * @param e - L'événement
+     * @return Vrai si l'événement est complet, Faux sinon
+     */
+    private boolean eventIsComplete(Event e) {
+        RegistrationStatus registrationStatus = RegistrationStatus.CONFIRMED;
+        Integer registrations = registrationRepository.countByEventIdAndStatus(e.getId(), registrationStatus);
+        return registrations == e.getCapacity();
     }
 
     // TODO: Filtrage des événements par status, association, date de début et de fin

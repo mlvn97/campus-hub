@@ -9,6 +9,7 @@ import fr.esgi.event_api.dto.response.EventResponse;
 import fr.esgi.event_api.entities.Event;
 import fr.esgi.event_api.enums.EventStatus;
 import fr.esgi.event_api.exceptions.ForbiddenException;
+import fr.esgi.event_api.exceptions.InvalidStatusException;
 import fr.esgi.event_api.exceptions.ResourceNotFound;
 import fr.esgi.event_api.repositories.EventRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,43 +25,61 @@ public class EventService {
         return toResponse(find(id));
     }
 
-    public EventResponse create(EventRequest eventRequest) {
+    public EventResponse create(EventRequest eventRequest, String authorization) {
         Event event = toEntity(eventRequest);
+        assertCanManageEvent(event, authorization);
+        event.setStatus(EventStatus.DRAFT);  // Un événement créé est mis en brouillon initialement
         return toResponse(eventRepository.save(event));
     }
 
     public EventResponse update(UpdateEventRequest request, Long eventId, String authorization) {
         Event event = find(eventId);
-        // Utilise l'association enregistrée, et non un identifiant fourni dans le PATCH.
-        if (!associationClient.canManageEvent(event.getAssociationId(), authorization))
-            throw new ForbiddenException("Vous ne pouvez pas modifier cet événement.");
+        assertCanManageEvent(event, authorization);
         
         if (request.getTitle() != null) event.setTitle(request.getTitle());
         if (request.getDescription() != null) event.setDescription(request.getDescription());
         if (request.getDate() != null) event.setDate(request.getDate());
         if (request.getLocation() != null) event.setLocation(request.getLocation());
         if (request.getCapacity() != null) event.setCapacity(request.getCapacity());
-        if (request.getStatus() != null) event.setStatus(request.getStatus());
         return toResponse(eventRepository.save(event));
     }
 
     public void delete(EventRequest request, Long eventId, Long associationId) {
-        Event event = find(eventId);
-        if (request.getAssociationId() != associationId)
-            throw new ForbiddenException("Une association peut seulement supprimer ses propres événements.");
-        
+        Event event = find(eventId);        
         eventRepository.delete(event);
     }
 
-    public EventResponse cancelEvent(Long eventId, String authorization) {
-        Event event = find(eventId);
-        if (!associationClient.canManageEvent(event.getAssociationId(), authorization))
-            throw new ForbiddenException("Vous ne pouvez pas annuler cet événement.");
-        event.setStatus(EventStatus.CANCELLED);
-        return toResponse(eventRepository.save(event));
+    public EventResponse updateEventState(Long eventId, String state, String authorization) {
+        assertCanManageEvent(find(eventId), authorization);
+        EventResponse response = changeEventStatus(eventId, normalizeStatus(state));
+        return response;
     }
 
-    private Event find(Long id) {
+    /**
+     * Vérifie si l'utilisateur a le droit de modifier un événement.
+     * @param e - L'événement à modifier
+     * @param auth - L'utilisateur
+     */
+    private void assertCanManageEvent(Event e, String auth) {
+        if (!associationClient.canManageEvent(e.getAssociationId(), auth))
+            throw new ForbiddenException("Vous n'êtes pas le président de cette association");
+    }
+
+    private EventStatus normalizeStatus(String s) {
+        for (EventStatus status : EventStatus.values()) {
+            if (s.equals(status.name()))
+                return status;
+        }
+        throw new InvalidStatusException();
+    }
+
+    protected EventResponse changeEventStatus(Long eventId, EventStatus status) {
+        Event e = find(eventId);
+        e.setStatus(status);
+        return toResponse(eventRepository.save(e));
+    }
+
+    protected Event find(Long id) {
         return eventRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFound("Événement " + id + " introuvable."));
     }

@@ -4,6 +4,7 @@ import java.net.URI;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,7 +16,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController 
 @RequiredArgsConstructor 
-@RequestMapping ("/api/events/{id}/inscriptions")
+@RequestMapping ("/api/events/{eventId}/registrations")
 public class RegistrationController {
 
     private final RegistrationService registrationService;
@@ -23,6 +24,14 @@ public class RegistrationController {
     @PostMapping 
     public ResponseEntity<RegistrationResponse> registerToEvent(@AuthenticationPrincipal Long userId, @PathVariable Long eventId) {
         RegistrationResponse response = registrationService.registerToEvent(userId, eventId);
-        return ResponseEntity.created(URI.create("/api/events/" + eventId + "/inscriptions/" + response.getId())).body(response);
+        return ResponseEntity.created(URI.create("/api/events/" + eventId + "/registrations/" + response.getId())).body(response);
+    }
+
+    @PatchMapping ("/{registrationId}")
+    public ResponseEntity<RegistrationResponse> cancelRegistration(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long eventId,
+            @PathVariable Long registrationId) {
+        return ResponseEntity.ok(registrationService.cancelRegistration(userId, eventId, registrationId));
     }
 }

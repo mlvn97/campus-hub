@@ -1,5 +1,7 @@
 package fr.esgi.event_api.client;
 
+import org.springframework.http.HttpHeaders;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -16,7 +18,7 @@ public class AssociationClient {
     public boolean canManageEvent(Long associationId, String authorization) {
         return restClient.get()
             .uri("/api/associations/{associationId}/members/can-manage", associationId)
-            .header(authorization)
+            .header(HttpHeaders.AUTHORIZATION, authorization)
             .retrieve()
             .body(Boolean.class);
     }

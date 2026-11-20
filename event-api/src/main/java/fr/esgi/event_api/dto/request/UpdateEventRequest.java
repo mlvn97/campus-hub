@@ -2,7 +2,6 @@ package fr.esgi.event_api.dto.request;
 
 import java.time.LocalDateTime;
 
-import fr.esgi.event_api.enums.EventStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
@@ -28,7 +27,5 @@ public class UpdateEventRequest {
 
     @Positive(message = "La capacité doit être supérieure à zéro.")
     private Integer capacity;
-
-    private EventStatus status;
 
 }

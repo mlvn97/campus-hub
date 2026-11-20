@@ -3,9 +3,6 @@ package fr.esgi.event_api.controllers;
 import java.net.URI;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -14,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import fr.esgi.event_api.dto.request.EventRequest;
@@ -36,8 +34,10 @@ public class EventController {
     }
 
     @PostMapping
-    public ResponseEntity<EventResponse> createEvent(@Valid @RequestBody EventRequest request) {
-        EventResponse response = eventService.create(request);
+    public ResponseEntity<EventResponse> createEvent(
+            @Valid @RequestBody EventRequest request,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
+        EventResponse response = eventService.create(request, authorization);
         return ResponseEntity.created(URI.create("/api/events/" + response.getId())).body(response);
     }
 
@@ -49,12 +49,12 @@ public class EventController {
         return ResponseEntity.ok(eventService.update(request, id, authorization));
     }
 
-    @PreAuthorize ("hasRole('ROLE_ADMIN_ASSOCIATION')")
-    @PatchMapping ("/{id}/cancel")
-    public ResponseEntity<EventResponse> cancelEvent(
+    @PatchMapping ("/{id}/state")
+    public ResponseEntity<EventResponse> updateEventState(
             @PathVariable Long id,
+            @RequestParam("state") String state,
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
-        return ResponseEntity.ok(eventService.cancelEvent(id, authorization));
+        return ResponseEntity.ok(eventService.updateEventState(id, state, authorization));
     }
 
 }
