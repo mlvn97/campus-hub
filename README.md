@@ -69,39 +69,80 @@ Le frontend permet:
 
 <br>
 
-# Consignes de lancement
+# Lancement en local
 
-## Local
-1. Installer Java 25 et Maven sur sa machine.
-2. Installer postgresql sur sa machine.
-3. Configurer un fichier .env dans chaque service API (voir .env.example) pour se connecter à la base de données de développement.
-4. Dans chaque service API, exécuter:
-
+1. Installer Docker et Docker Compose sur sa machine.
+2. Se créer un token JWT:
 ```bash
-./mvnw spring-boot:run
+openssl rand -base64 32
+```
+3. Configurer un fichier .env dans chaque service API (voir .env.example).
+4. Se placer à la racine du projet puis exécuter:
+```bash
+docker compose -f compose.dev.yaml up -d --build
+```
+5. Aller sur http://localhost:4200 pour accéder à l'application.
+
+# Déploiement et lancement sur AWS EC2
+
+## 1. Prérequis
+- Une instance AWS EC2 sous Amazon Linux 2023.
+- Docker et Docker Compose installés sur la machine.
+- Un runner Github Actions configuré sur l'instance EC2 (Voir étapes sur github.com)
+- Les images Docker du projet publiées sur GitHub Container Registry (GHCR).
+- Les ports nécessaires autorisés dans le Security Group AWS.
+
+## 2. Préparer le serveur (première installation uniquement)
+Créer le répertoire de déploiement:
+```bash
+sudo mkdir -p /opt/campus-hub
+sudo chown ec2-user:ec2-user /opt/campus-hub
 ```
 
-## Machine distante EC2
-Compiler chaque API avec Maven:
-
+Créer le fichier .env dans /opt/campus-hub :
 ```bash
-cd "api_cible"
-./mvnw clean install
+cd /opt/campus-hub
+nano .env
 ```
 
-Puis copier le .jar `nom-api-0.0.1-SNAPSHOT.jar` (généralement) de chaque service API vers la machine distante:
+Configurer les variables d'environnement nécessaires:
+```.env
+DB_URL=jdbc:postgresql://adresse_rds_postgres:port/nom_de_la_base
+DB_USERNAME=postgres
+DB_PASSWORD=mot_de_passe
+JWT_SECRET=token_jwt
+```
+Ne pas publier ce fichier sur Github.
+
+## 3. Déploiement
+Le déploiement est automatisé par Github Actions.
+
+Lorsqu'un changement est poussé sur la branche `main`:
+1. GitHub Actions exécute les tests.
+2. Les images Docker des différentes applications sont construites.
+3. Les images sont publiées sur GHCR.
+4. Le runner installé sur EC2 récupère les nouvelles images.
+5. Docker Compose recrée les conteneurs avec les nouvelles versions.
+
+Le workflow de déploiement exécute notamment:
 ```bash
-scp -i "ma_cle_api.pem" "chemin_du_jar" "ec2-user@adresse:~/nom-api.jar"
+cd /opt/campus-hub
+IMAGE_TAG=<COMMIT_SHA> docker compose pull
+IMAGE_TAG=<COMMIT_SHA> docker compose up -d --remove-orphans
 ```
 
-Ensuite, depuis la machine distante, configurer le script de lancement `start.sh` en modifiant les variables d'environnement DB_URL, DB_USER et DB_PASSWORD:
+## 4. Vérifier le lancement
+Afficher l'état des conteneurs:
 ```bash
-export DB_URL=""
-export DB_USERNAME=""
-export DB_PASSWORD=""
+cd /opt/campus-hub
+docker ps
 ```
 
-Enfin, toujours depuis la machine distante, se placer à la racine (dossier ~/) et exécuter:
+Afficher les logs:
 ```bash
-./start.sh &
+cd /opt/campus-hub
+docker logs nom_de_l_image
 ```
+
+## 5. Accéder à l'application
+L'application est accessible depuis l'adresse publique de l'instance EC2 via HTTP.
