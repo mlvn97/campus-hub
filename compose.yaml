@@ -1,0 +1,56 @@
+services:
+
+  frontend:
+    image: ghcr.io/${GHCR_OWNER}/campus-hub-frontend:${IMAGE_TAG:-latest}
+    container_name: campus-hub-frontend
+    ports:
+      - "127.0.0.1:8084:80"
+    restart: unless-stopped
+
+  user-api:
+    image: ghcr.io/${GHCR_OWNER}/campus-hub-user-api:${IMAGE_TAG:-latest}
+    container_name: user-api
+    ports:
+      - "127.0.0.1:8080:8080"
+    env_file:
+      - .env
+    restart: unless-stopped
+    networks:
+      - campus-network
+
+  association-api:
+    image: ghcr.io/${GHCR_OWNER}/campus-hub-association-api:${IMAGE_TAG:-latest}
+    container_name: association-api
+    ports:
+      - "127.0.0.1:8081:8080"
+    env_file:
+      - .env
+    restart: unless-stopped
+    networks:
+      - campus-network
+
+  event-api:
+    image: ghcr.io/${GHCR_OWNER}/campus-hub-event-api:${IMAGE_TAG:-latest}
+    container_name: event-api
+    ports:
+      - "127.0.0.1:8082:8080"
+    env_file:
+      - .env
+    restart: unless-stopped
+    networks:
+      - campus-network
+
+  news-api:
+    image: ghcr.io/${GHCR_OWNER}/campus-hub-news-api:${IMAGE_TAG:-latest}
+    container_name: news-api
+    ports:
+      - "127.0.0.1:8083:8080"
+    env_file:
+      - .env
+    restart: unless-stopped
+    networks:
+      - campus-network
+
+networks:
+  campus-network:
+    driver: bridge

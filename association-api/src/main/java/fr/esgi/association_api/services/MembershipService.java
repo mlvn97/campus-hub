@@ -13,6 +13,7 @@ import fr.esgi.association_api.entities.Membership;
 import fr.esgi.association_api.enums.MemberRole;
 import fr.esgi.association_api.exceptions.AlreadyPresidentException;
 import fr.esgi.association_api.exceptions.AssociationNotFoundException;
+import fr.esgi.association_api.exceptions.ForbiddenException;
 import fr.esgi.association_api.exceptions.InvalidSuccessorException;
 import fr.esgi.association_api.exceptions.MembershipAlreadyExistsException;
 import fr.esgi.association_api.exceptions.MembershipNotFoundException;
@@ -103,6 +104,10 @@ public class MembershipService {
         }
         membership.setRole(request.getRole());
         return toResponse(membershipRepository.save(membership));
+    }
+
+    public boolean isPresidentOf(Long associationId, Long userId) {
+        return membershipRepository.existsByAssociationIdAndUserIdAndRole(associationId, userId, MemberRole.PRESIDENT);
     }
 
     private void requireAssociation(Long associationId) {
