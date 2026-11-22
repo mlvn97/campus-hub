@@ -1,6 +1,7 @@
 package fr.esgi.user_api.controllers;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -17,7 +18,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/profiles")
+@RequestMapping("/api/users/profiles")
 public class ProfileController {
 
     private final ProfileService profileService;
@@ -36,14 +37,14 @@ public class ProfileController {
     public ResponseEntity<ProfileResponse> updateMyProfile(
             @AuthenticationPrincipal Long userId,
             @Valid @RequestBody ProfileUpdateRequest request) {
-        return ResponseEntity.ok(profileService.updateProfile(userId, userId, request));
+        return ResponseEntity.ok(profileService.updateProfile(userId, request));
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN_CAMPUS')")
     @PatchMapping("/{userId}")
     public ResponseEntity<ProfileResponse> updateProfile(
             @PathVariable Long userId,
-            @AuthenticationPrincipal Long requesterId,
             @Valid @RequestBody ProfileUpdateRequest request) {
-        return ResponseEntity.ok(profileService.updateProfile(userId, requesterId, request));
+        return ResponseEntity.ok(profileService.updateProfile(userId, request));
     }
 }

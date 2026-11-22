@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 
 import fr.esgi.user_api.dto.request.ProfileUpdateRequest;
 import fr.esgi.user_api.dto.response.ProfileResponse;
-import fr.esgi.user_api.exceptions.ForbiddenException;
 import fr.esgi.user_api.exceptions.ResourceNotFound;
 import fr.esgi.user_api.models.Profile;
 import fr.esgi.user_api.repositories.ProfileRepository;
@@ -30,18 +29,12 @@ public class ProfileService {
     }
 
     public ProfileResponse getProfileByUserId(Long userId) {
-        Profile profile = profileRepository.findByUserId(userId)
-                .orElseThrow(() -> new ResourceNotFound("Profile not found"));
+        Profile profile = find(userId);
         return toProfileResponse(profile);
     }
 
-    public ProfileResponse updateProfile(Long profileOwnerId, Long requesterId, ProfileUpdateRequest request) {
-        if (!profileOwnerId.equals(requesterId)) {
-            throw new ForbiddenException("Vous ne pouvez modifier que votre propre profil.");
-        }
-
-        Profile profile = profileRepository.findByUserId(profileOwnerId)
-                .orElseThrow(() -> new ResourceNotFound("Profile not found"));
+    public ProfileResponse updateProfile(Long userId, ProfileUpdateRequest request) {
+        Profile profile = find(userId);
         if (request.getBio() != null) {
             profile.setBio(request.getBio());
         }
@@ -49,6 +42,11 @@ public class ProfileService {
             profile.setProfilePictureUrl(request.getProfilePictureUrl());
         }
         return toProfileResponse(profileRepository.save(profile));
+    }
+
+    private Profile find(Long userId) {
+        return profileRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFound("Profil introuvable"));
     }
 
     private ProfileResponse toProfileResponse(Profile profile) {

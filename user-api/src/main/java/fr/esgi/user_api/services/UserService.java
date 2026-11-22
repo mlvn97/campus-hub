@@ -10,6 +10,7 @@ import fr.esgi.user_api.dto.response.AuthenticationResponse;
 import fr.esgi.user_api.dto.response.UserResponse;
 import fr.esgi.user_api.exceptions.EmailAlreadyUsedException;
 import fr.esgi.user_api.exceptions.InvalidCredentialsException;
+import fr.esgi.user_api.exceptions.ResourceNotFound;
 import fr.esgi.user_api.enums.UserRole;
 import fr.esgi.user_api.models.User;
 import fr.esgi.user_api.repositories.UserRepository;
@@ -26,13 +27,13 @@ public class UserService {
     private final JwtService jwtService;
 
     @Transactional
-    public AuthenticationResponse registerUser(UserRegistrationRequest request) {
+    public UserResponse registerUser(UserRegistrationRequest request) {
         if (userRepository.existsByEmail(request.getEmail()))
             throw new EmailAlreadyUsedException("L'email est déjà utilisé.");
 
         User user = userRepository.save(toEntity(request));
         profileService.create(user.getId());
-        return toAuthenticationResponse(user);
+        return toUserResponse(user);
     }
 
     public AuthenticationResponse login(LoginRequest request) {
@@ -44,10 +45,15 @@ public class UserService {
         return toAuthenticationResponse(user);
     }
 
+    public UserResponse getUserById(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFound("Utilisateur introuvable"));
+        return toUserResponse(user);
+    }
+
     private AuthenticationResponse toAuthenticationResponse(User user) {
         return new AuthenticationResponse(
                 jwtService.generateToken(user.getId(), user.getRole().name()),
-                "Bearer",
                 toUserResponse(user)
         );
     }
