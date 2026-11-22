@@ -1,0 +1,9 @@
+main { max-width: 56rem; margin: 2rem auto; padding: 0 1rem; }
+form { display: flex; flex-wrap: wrap; align-items: end; gap: .75rem; margin-bottom: 1.5rem; }
+label { display: grid; gap: .3rem; }
+input, select, button { font: inherit; padding: .4rem .55rem; }
+article { border-top: 1px solid #d9dde4; padding: 1rem 0; }
+h2 { margin: 0; font-size: 1.25rem; }
+.meta { color: #505867; }
+.description { white-space: pre-wrap; overflow-wrap: anywhere; }
+.pagination { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }

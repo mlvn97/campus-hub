@@ -1,0 +1,10 @@
+.site-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem 1.25rem;
+    align-items: center;
+    padding: .9rem 1rem;
+    border-bottom: 1px solid #d9dde4;
+}
+.site-nav a { color: #233b64; }
+.site-nav a.active { font-weight: 700; }
