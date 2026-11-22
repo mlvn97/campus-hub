@@ -112,6 +112,8 @@ DB_USERNAME=postgres
 DB_PASSWORD=mot_de_passe
 JWT_SECRET=token_jwt
 ```
+`JWT_SECRET` doit être une clé encodée en Base64 qui représente au moins 32 octets.
+Pour la production, générez une clé unique avec `openssl rand -base64 32`.
 Ne pas publier ce fichier sur Github.
 
 ## 3. Déploiement

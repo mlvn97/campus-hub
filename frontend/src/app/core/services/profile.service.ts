@@ -10,7 +10,9 @@ import { ProfileUpdateRequest } from "../../dto/profile/profile-update-request.d
 })
 export class ProfileService {
 
-    constructor(private http: HttpClient, private api: ApiService, private url: string) {
+    private url: string;
+
+    constructor(private http: HttpClient, private api: ApiService) {
         this.url = `${this.api.userUrl}/profiles`;
     }
 

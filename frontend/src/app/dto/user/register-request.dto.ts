@@ -1,5 +1,5 @@
 export interface UserRegistrationRequest {
-    name: string,
-    email: string,
-    password: string
+    name: string | null,
+    email: string | null,
+    password: string | null
 }

@@ -1,0 +1,81 @@
+<div class="auth-container">
+
+    <div class="auth-card">
+
+        <h1>{{ isLogin ? 'Connexion' : 'Créer un compte' }}</h1>
+
+        <p>
+            {{ isLogin
+                ? 'Connectez-vous à votre compte Campus Hub.'
+                : 'Rejoignez la communauté Campus Hub.' }}
+        </p>
+
+        <!-- Connexion -->
+        <form *ngIf="isLogin" [formGroup]="loginForm" (ngSubmit)="login()">
+
+            <label>Email</label>
+            <input type="email" formControlName="email" placeholder="Votre email">
+
+            <label>Mot de passe</label>
+            <input type="password" formControlName="password" placeholder="Votre mot de passe">
+
+            <button type="submit">Se connecter</button>
+
+        </form>
+
+        <!-- Inscription -->
+        <form *ngIf="!isLogin" [formGroup]="registerForm" (ngSubmit)="register()">
+
+            <label>Prénom</label>
+            <input type="text" formControlName="firstName">
+            <p *ngIf="registerForm.controls.firstName.touched && registerForm.controls.firstName.hasError('required')" class="error">
+                Le prénom est obligatoire.
+            </p>
+
+            <label>Nom</label>
+            <input type="text" formControlName="lastName">
+            <p *ngIf="registerForm.controls.lastName.touched && registerForm.controls.lastName.hasError('required')" class="error">
+                Le nom est obligatoire.
+            </p>
+
+            <label>Email</label>
+            <input type="email" formControlName="email">
+            <p *ngIf="registerForm.controls.email.touched && registerForm.controls.email.hasError('required')" class="error">
+                L’email est obligatoire.
+            </p>
+            <p *ngIf="registerForm.controls.email.touched && registerForm.controls.email.hasError('email')" class="error">
+                Saisissez une adresse email valide.
+            </p>
+
+            <label>Mot de passe</label>
+            <input type="password" formControlName="password">
+            <p *ngIf="registerForm.controls.password.touched && registerForm.controls.password.hasError('required')" class="error">
+                Le mot de passe est obligatoire.
+            </p>
+            <p *ngIf="registerForm.controls.password.touched && registerForm.controls.password.hasError('minlength')" class="error">
+                Le mot de passe doit contenir au moins 6 caractères.
+            </p>
+
+            <button type="submit">Créer mon compte</button>
+
+        </form>
+
+        <p *ngIf="errorMessage" class="error">
+            {{ errorMessage }}
+        </p>
+
+        <p *ngIf="successMessage" class="success">
+            {{ successMessage }}
+        </p>
+
+        <div class="switch-mode">
+            {{ isLogin ? 'Pas encore de compte ?' : 'Déjà un compte ?' }}
+
+            <button type="button" (click)="switchMode()">
+                {{ isLogin ? 'S’inscrire' : 'Se connecter' }}
+            </button>
+        </div>
+
+    </div>
+
+</div>
