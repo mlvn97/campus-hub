@@ -24,7 +24,7 @@ services:
       DB_URL: jdbc:postgresql://db:5432/campus_hub
       DB_USERNAME: postgres
       DB_PASSWORD: campus_hub_local
-      JWT_SECRET: campus-hub-local-only-secret-change-for-production
+      JWT_SECRET: Y2FtcHVzLWh1Yi1sb2NhbC1vbmx5LXNlY3JldC1jaGFuZ2UtZm9yLXByb2R1Y3Rpb24=
     depends_on:
       db:
         condition: service_healthy
