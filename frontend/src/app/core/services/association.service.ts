@@ -2,20 +2,9 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import {
-    AddMemberRequest,
-    AssociationRequest,
-    ChangeMemberRoleRequest,
-    MembershipApplicationRequest
-} from '../../dto/association/association-request.dto';
+import { AssociationRequest, MembershipApplicationRequest } from '../../dto/association/association-request.dto';
 import { PageQuery, PageResponse } from '../../dto/page-response.dto';
-import {
-    Association,
-    AssociationCategory,
-    AssociationStatus,
-    Membership,
-    MembershipApplication
-} from '../../models/association.model';
+import { Association, AssociationCategory, AssociationStatus, MembershipApplication } from '../../models/association.model';
 import { ApiService } from './api.service';
 import { queryParams } from './query-params';
 
@@ -54,28 +43,6 @@ export class AssociationService {
 
     deleteAssociation(id: number): Observable<void> {
         return this.http.delete<void>(`${this.url}/${id}`);
-    }
-
-    fetchMembers(associationId: number): Observable<Membership[]> {
-        return this.http.get<Membership[]>(`${this.url}/${associationId}/members`);
-    }
-
-    addMember(associationId: number, data: AddMemberRequest): Observable<Membership> {
-        return this.http.post<Membership>(`${this.url}/${associationId}/members`, data);
-    }
-
-    removeMember(associationId: number, userId: number, successorUserId?: number): Observable<void> {
-        return this.http.delete<void>(`${this.url}/${associationId}/members/${userId}`, {
-            params: queryParams({ successorUserId })
-        });
-    }
-
-    changeMemberRole(associationId: number, userId: number, data: ChangeMemberRoleRequest): Observable<Membership> {
-        return this.http.patch<Membership>(`${this.url}/${associationId}/members/${userId}/role`, data);
-    }
-
-    canManageAssociation(associationId: number): Observable<boolean> {
-        return this.http.get<boolean>(`${this.url}/${associationId}/members/can-manage`);
     }
 
     fetchApplications(associationId: number): Observable<MembershipApplication[]> {
