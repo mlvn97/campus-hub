@@ -1,6 +1,6 @@
 package fr.esgi.association_api.enums;
 
-public enum MembershipApplicationStatus {
+public enum SubscriptionStatus {
     PENDING,
     APPROVED,
     REJECTED

@@ -33,7 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/actualites")
+@RequestMapping("/api/news")
 @Tag(name = "Actualités")
 @SecurityRequirement(name = "bearerAuth")
 public class NewsController {

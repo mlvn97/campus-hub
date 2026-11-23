@@ -1,4 +1,5 @@
-export type MemberRole = 'PRESIDENT' | 'TREASURER' | 'MEMBER';
+import { MemberRole } from "../enums/associations/membership-role.type";
+
 
 export interface Membership {
     id: number;

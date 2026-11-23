@@ -51,8 +51,7 @@ export class AuthComponent {
         this.errorMessage = '';
         this.authService.login(this.loginForm.getRawValue()).subscribe({
             next: () => {
-                const destination = this.route.snapshot.queryParamMap.get('destination');
-                this.router.navigate([destination === 'compte' ? '/compte' : '/']);
+                this.router.navigate(['/']);
             },
             error: () => {
                 this.errorMessage = 'Email ou mot de passe incorrect.';

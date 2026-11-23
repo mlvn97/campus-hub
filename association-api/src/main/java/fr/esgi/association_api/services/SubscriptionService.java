@@ -6,57 +6,79 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import fr.esgi.association_api.dto.request.MembershipApplicationRequest;
-import fr.esgi.association_api.dto.response.MembershipApplicationResponse;
+import fr.esgi.association_api.dto.request.SubscriptionRequest;
+import fr.esgi.association_api.dto.response.SubscriptionResponse;
 import fr.esgi.association_api.entities.Membership;
-import fr.esgi.association_api.entities.MembershipApplication;
+import fr.esgi.association_api.entities.Subscription;
 import fr.esgi.association_api.enums.MemberRole;
-import fr.esgi.association_api.enums.MembershipApplicationStatus;
+import fr.esgi.association_api.enums.SubscriptionStatus;
 import fr.esgi.association_api.exceptions.AssociationNotFoundException;
 import fr.esgi.association_api.exceptions.DuplicateRequestException;
 import fr.esgi.association_api.exceptions.ForbiddenException;
 import fr.esgi.association_api.exceptions.MembershipAlreadyExistsException;
-import fr.esgi.association_api.exceptions.MembershipApplicationAlreadyProcessedException;
-import fr.esgi.association_api.exceptions.MembershipApplicationNotFoundException;
+import fr.esgi.association_api.exceptions.SubscriptionAlreadyManaged;
+import fr.esgi.association_api.exceptions.SubscriptionNotFound;
 import fr.esgi.association_api.repositories.AssociationRepository;
-import fr.esgi.association_api.repositories.MembershipApplicationRepository;
+import fr.esgi.association_api.repositories.SubscriptionRepository;
 import fr.esgi.association_api.repositories.MembershipRepository;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class MembershipApplicationService {
+public class SubscriptionService {
 
     private final AssociationRepository associationRepository;
-    private final MembershipApplicationRepository applicationRepository;
+    private final SubscriptionRepository applicationRepository;
     private final MembershipRepository membershipRepository;
+    private final MembershipService membershipService;
+
+    public SubscriptionResponse approveSubscription(Long userId, Long associationId, Long subscriptionId) {
+        if (!membershipService.isPresidentOf(associationId, userId))
+            throw new ForbiddenException("Seul le président de l'association peut gérer les demandes d'adhésion.");
+
+        Subscription subscription = find(subscriptionId);
+        checkPendingStatus(subscription);
+        subscription.setStatus(SubscriptionStatus.APPROVED);
+        membershipService.createMembershipFor(associationId, userId);
+        return toResponse(subscription);
+    }
+
+    public SubscriptionResponse rejectSubscription(Long userId, Long associationId, Long subscriptionId) {
+        if (!membershipService.isPresidentOf(associationId, userId))
+            throw new ForbiddenException("Seul le président de l'association peut gérer les demandes d'adhésion.");
+
+        Subscription subscription = find(subscriptionId);
+        checkPendingStatus(subscription);
+        subscription.setStatus(SubscriptionStatus.REJECTED);
+        return toResponse(subscription);
+    }
 
     @Transactional
-    public MembershipApplicationResponse submitApplication(
+    public SubscriptionResponse submitApplication(
             Long associationId,
             Long applicantUserId,
-            MembershipApplicationRequest request) {
-        requireAssociation(associationId);
+            SubscriptionRequest request) {
+        checkIfAssociationExists(associationId);
         if (applicationRepository.existsByAssociationIdAndUserIdAndStatus(
-                associationId, applicantUserId, MembershipApplicationStatus.PENDING)) {
+                associationId, applicantUserId, SubscriptionStatus.PENDING)) {
             throw new DuplicateRequestException(applicantUserId, associationId);
         }
         if (membershipRepository.existsByAssociationIdAndUserId(associationId, applicantUserId)) {
             throw new MembershipAlreadyExistsException(associationId, applicantUserId);
         }
 
-        MembershipApplication application = new MembershipApplication(
+        Subscription application = new Subscription(
                 null,
                 applicantUserId,
                 associationId,
                 request.getMotivation(),
-                MembershipApplicationStatus.PENDING
+                SubscriptionStatus.PENDING
         );
         return toResponse(applicationRepository.save(application));
     }
 
     @Transactional(readOnly = true)
-    public List<MembershipApplicationResponse> getApplications(Long associationId, Long requesterUserId) {
+    public List<SubscriptionResponse> getSubscriptions(Long associationId, Long requesterUserId) {
         requirePresident(associationId, requesterUserId);
         return applicationRepository.findByAssociationIdOrderByIdDesc(associationId)
                 .stream()
@@ -65,11 +87,11 @@ public class MembershipApplicationService {
     }
 
     @Transactional
-    public MembershipApplicationResponse approveApplication(
+    public SubscriptionResponse approveApplication(
             Long associationId,
             Long applicationId,
             Long requesterUserId) {
-        MembershipApplication application = findPendingApplication(associationId, applicationId, requesterUserId);
+        Subscription application = findPendingApplication(associationId, applicationId, requesterUserId);
         if (membershipRepository.existsByAssociationIdAndUserId(associationId, application.getUserId())) {
             throw new MembershipAlreadyExistsException(associationId, application.getUserId());
         }
@@ -83,49 +105,60 @@ public class MembershipApplicationService {
         );
         membershipRepository.save(membership);
 
-        application.setStatus(MembershipApplicationStatus.APPROVED);
+        application.setStatus(SubscriptionStatus.APPROVED);
         return toResponse(applicationRepository.save(application));
     }
 
     @Transactional
-    public MembershipApplicationResponse rejectApplication(
+    public SubscriptionResponse rejectApplication(
             Long associationId,
             Long applicationId,
             Long requesterUserId) {
-        MembershipApplication application = findPendingApplication(associationId, applicationId, requesterUserId);
-        application.setStatus(MembershipApplicationStatus.REJECTED);
+        Subscription application = findPendingApplication(associationId, applicationId, requesterUserId);
+        application.setStatus(SubscriptionStatus.REJECTED);
         return toResponse(applicationRepository.save(application));
     }
 
-    private MembershipApplication findPendingApplication(
+    private Subscription findPendingApplication(
             Long associationId,
             Long applicationId,
             Long requesterUserId) {
         requirePresident(associationId, requesterUserId);
-        MembershipApplication application = applicationRepository.findByIdAndAssociationId(applicationId, associationId)
-                .orElseThrow(() -> new MembershipApplicationNotFoundException(applicationId, associationId));
-        if (application.getStatus() != MembershipApplicationStatus.PENDING) {
-            throw new MembershipApplicationAlreadyProcessedException(applicationId);
+        Subscription application = applicationRepository.findByIdAndAssociationId(applicationId, associationId)
+                .orElseThrow(() -> new SubscriptionNotFound());
+        if (application.getStatus() != SubscriptionStatus.PENDING) {
+            throw new SubscriptionAlreadyManaged(applicationId);
         }
         return application;
     }
 
+    private Subscription find(Long subscriptionId) {
+        Subscription subscription = applicationRepository.findById(subscriptionId)
+                .orElseThrow(() -> new SubscriptionNotFound());
+        return subscription;
+    }
+
+    private void checkPendingStatus(Subscription subscription) {
+        if (subscription.getStatus() != SubscriptionStatus.PENDING)
+            throw new SubscriptionAlreadyManaged(subscription.getAssociationId());
+    }
+
     private void requirePresident(Long associationId, Long requesterUserId) {
-        requireAssociation(associationId);
+        checkIfAssociationExists(associationId);
         if (!membershipRepository.existsByAssociationIdAndUserIdAndRole(
                 associationId, requesterUserId, MemberRole.PRESIDENT)) {
             throw new ForbiddenException("Seul le président de l'association peut gérer les demandes d'adhésion.");
         }
     }
 
-    private void requireAssociation(Long associationId) {
+    private void checkIfAssociationExists(Long associationId) {
         if (!associationRepository.existsById(associationId)) {
             throw new AssociationNotFoundException(associationId);
         }
     }
 
-    private MembershipApplicationResponse toResponse(MembershipApplication application) {
-        return new MembershipApplicationResponse(
+    private SubscriptionResponse toResponse(Subscription application) {
+        return new SubscriptionResponse(
                 application.getId(),
                 application.getUserId(),
                 application.getAssociationId(),

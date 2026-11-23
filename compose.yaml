@@ -4,7 +4,7 @@ services:
     image: ghcr.io/${GHCR_OWNER}/campus-hub-frontend:${IMAGE_TAG:-latest}
     container_name: campus-hub-frontend
     ports:
-      - "80:80"
+      - "127.0.0.1:8084:80"
     depends_on:
       - user-api
       - association-api

@@ -12,7 +12,7 @@ import fr.esgi.association_api.enums.AssociationCategory;
 import fr.esgi.association_api.enums.AssociationStatus;
 import fr.esgi.association_api.exceptions.AssociationNotFoundException;
 import fr.esgi.association_api.repositories.AssociationRepository;
-import fr.esgi.association_api.repositories.MembershipApplicationRepository;
+import fr.esgi.association_api.repositories.SubscriptionRepository;
 import fr.esgi.association_api.repositories.MembershipRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -22,7 +22,7 @@ public class AssociationService {
 
     private final AssociationRepository associationRepository;
     private final MembershipRepository membershipRepository;
-    private final MembershipApplicationRepository membershipApplicationRepository;
+    private final SubscriptionRepository membershipApplicationRepository;
 
     @Transactional(readOnly = true)
     public Page<AssociationResponse> getAssociations(
@@ -49,13 +49,7 @@ public class AssociationService {
 
     @Transactional
     public AssociationResponse createAssociation(AssociationRequest request) {
-        Association association = new Association(
-                null,
-                request.getName(),
-                request.getDescription(),
-                request.getCategory(),
-                request.getStatus()
-        );
+        Association association = toEntity(request);
         return toResponse(associationRepository.save(association));
     }
 
@@ -77,9 +71,23 @@ public class AssociationService {
         associationRepository.delete(association);
     }
 
+    protected void assertAssociationExists(Long id) {
+        if (!associationRepository.existsById(id)) throw new AssociationNotFoundException(id);
+    }
+
     private Association findAssociation(Long id) {
         return associationRepository.findById(id)
                 .orElseThrow(() -> new AssociationNotFoundException(id));
+    }
+
+    private Association toEntity(AssociationRequest request) {
+        return new Association(
+                null,
+                request.getName(),
+                request.getDescription(),
+                request.getCategory(),
+                request.getStatus()
+        );
     }
 
     private AssociationResponse toResponse(Association association) {

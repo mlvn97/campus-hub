@@ -1,6 +1,6 @@
 package fr.esgi.association_api.entities;
 
-import fr.esgi.association_api.enums.MembershipApplicationStatus;
+import fr.esgi.association_api.enums.SubscriptionStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -16,11 +16,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "membership_applications")
+@Table(name = "subscriptions")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class MembershipApplication {
+public class Subscription {
 
     @Id
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
@@ -42,5 +42,5 @@ public class MembershipApplication {
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private MembershipApplicationStatus status;
+    private SubscriptionStatus status;
 }

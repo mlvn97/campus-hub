@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class MembershipApplicationRequest {
+public class SubscriptionRequest {
 
     @NotBlank(message = "Le message de motivation est obligatoire.")
     @Size(max = 1000, message = "Le message de motivation ne peut pas dépasser 1000 caractères.")

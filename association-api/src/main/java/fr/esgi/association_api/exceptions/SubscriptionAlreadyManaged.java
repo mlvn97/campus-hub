@@ -4,9 +4,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(HttpStatus.CONFLICT)
-public class MembershipApplicationAlreadyProcessedException extends RuntimeException {
+public class SubscriptionAlreadyManaged extends RuntimeException {
 
-    public MembershipApplicationAlreadyProcessedException(Long applicationId) {
+    public SubscriptionAlreadyManaged(Long applicationId) {
         super("Membership application " + applicationId + " has already been processed.");
     }
 }
