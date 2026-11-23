@@ -22,6 +22,13 @@ const previewEvents: Event[] = [
         location: 'Salle informatique', status: 'POSTED', capacity: 16, description: 'Un atelier de programmation en groupe.' }
 ];
 const pageSize = 3;
+const eventPhotos = new Map([
+    ['atelier photo', 'photo-workshop'],
+    ['tournoi du campus', 'photo-sport'],
+    ['atelier code', 'photo-code'],
+    ['collecte solidaire', 'photo-collection'],
+    ['expo photo du campus', 'photo-exhibition']
+]);
 
 @Component({
     selector: 'app-events',
@@ -94,6 +101,10 @@ export class EventsComponent {
 
     protected options() {
         return this.preview() ? previewAssociations : this.associationOptions();
+    }
+
+    protected photoClass(title: string): string {
+        return eventPhotos.get(title.trim().toLocaleLowerCase('fr-FR')) ?? 'photo-campus';
     }
 
     protected dateLabel(date: string): string {

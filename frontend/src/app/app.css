@@ -18,3 +18,7 @@
     .site-nav .brand { flex-basis: 100%; }
     .site-nav .account { font-size: .95rem; padding: .5rem .85rem; }
 }
+
+.account-avatar { width: 2rem; height: 2rem; border-radius: 50%; object-fit: cover; flex: none; }
+.account-initials { display: grid; place-items: center; background: #fff7ee; color: var(--campus-ink); font-size: .8rem; }
+.account-name { max-width: min(18rem, 58vw); overflow: hidden; text-overflow: ellipsis; }

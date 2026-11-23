@@ -5,8 +5,17 @@
     <a routerLink="/evenements" routerLinkActive="active" ariaCurrentWhenActive="page">Événements</a>
     <a routerLink="/associations" routerLinkActive="active" ariaCurrentWhenActive="page">Associations</a>
     <a class="account" routerLink="/compte" routerLinkActive="active" ariaCurrentWhenActive="page">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M3 22a9 9 0 0 1 18 0Z"/></svg>
-        Mon compte
+        @if (account(); as user) {
+            @if (user.photo && !photoFailed()) {
+                <img class="account-avatar" [src]="user.photo" alt="" referrerpolicy="no-referrer" (error)="photoFailed.set(true)">
+            } @else {
+                <span class="account-avatar account-initials" aria-hidden="true">{{ user.initials }}</span>
+            }
+            <span class="account-name">{{ user.name }}</span>
+        } @else {
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M3 22a9 9 0 0 1 18 0Z"/></svg>
+            Mon compte
+        }
     </a>
 </nav>
 <router-outlet />

@@ -46,11 +46,14 @@
     </div>
 
     <section class="clubs" aria-labelledby="discover">
-        <h2 id="discover">Les associations à découvrir</h2>
+        <div class="clubs-heading">
+            <h2 id="discover">Les associations à découvrir</h2>
+            <a class="read-more" routerLink="/associations">Voir toutes les associations <span aria-hidden="true">→</span></a>
+        </div>
         <div class="club-grid">
-            <a class="club" routerLink="/associations"><div class="photo photography" aria-hidden="true"></div><h3>Club photo</h3></a>
-            <a class="club" routerLink="/associations"><div class="photo sports" aria-hidden="true"></div><h3>Bureau des sports</h3></a>
-            <a class="club" routerLink="/associations"><div class="photo technology" aria-hidden="true"></div><h3>Club tech</h3></a>
+            <a class="club" routerLink="/associations"><div class="photo photography" aria-hidden="true"></div><h3>Club photo <span class="club-arrow" aria-hidden="true">→</span></h3></a>
+            <a class="club" routerLink="/associations"><div class="photo sports" aria-hidden="true"></div><h3>Bureau des sports <span class="club-arrow" aria-hidden="true">→</span></h3></a>
+            <a class="club" routerLink="/associations"><div class="photo technology" aria-hidden="true"></div><h3>Club tech <span class="club-arrow" aria-hidden="true">→</span></h3></a>
         </div>
     </section>
 </main>

@@ -29,3 +29,11 @@ nav span { padding: .65rem 1rem; border-radius: .65rem; background: var(--campus
 .notice { color: #414b61; margin-top: -1.9rem; }
 @media (max-width: 850px) { .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 580px) { .cards, form { grid-template-columns: 1fr; } form { margin-block: 1.6rem 2.5rem; } .notice { margin-top: -1.4rem; } }
+
+.photo-collection, .photo-exhibition {
+    background-image: url('/campus/events-collection-expo.png');
+    background-size: 200% auto;
+    background-position: left 50%;
+}
+.photo-exhibition { background-position-x: right; }
+.photo-campus { background: url('/campus/auth-campus.png') center 48% / cover no-repeat; }

@@ -1,4 +1,4 @@
-.home { max-width: 1600px; margin: auto; padding: 1.6rem clamp(1rem, 1.65vw, 1.55rem) .75rem; }
+.home { max-width: 1600px; margin: auto; padding: 1.6rem clamp(1rem, 1.65vw, 1.55rem) clamp(3rem, 6vw, 6rem); }
 .hero { display: grid; grid-template-columns: 2fr 2.95fr; gap: 2rem; align-items: center; padding: 0 .55rem 0 clamp(.3rem, 2vw, 1.9rem); margin-bottom: 2.15rem; }
 h1, h2 { font-family: Georgia, 'Times New Roman', serif; letter-spacing: -.035em; }
 h1 { margin: 0; font-size: clamp(3rem, 5.65vw, 5.35rem); line-height: .91; }
@@ -29,11 +29,20 @@ h3, .events strong { margin: 0; font-size: clamp(1.1rem, 1.8vw, 1.65rem); line-h
 .event-icon { display: grid; place-items: center; width: 3.85rem; height: 3.5rem; border-radius: .75rem; color: var(--campus-coral); background: #fbdfd2; }
 .event-icon svg { width: 2.35rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .event-time { color: #454347; font-size: clamp(.85rem, 1.45vw, 1.3rem); white-space: nowrap; }
-.clubs { margin: 2rem .65rem 0; }
-.clubs h2 { margin-left: .45rem; }
+.clubs { margin: clamp(2.25rem, 3.8vw, 3.75rem) .65rem 0; }
+.clubs-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .6rem 1.5rem; margin-bottom: 1.3rem; }
+.clubs-heading h2 { margin: 0; }
+.clubs-heading .read-more { font-size: 1rem; }
 .club-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.25rem; }
 .club { border: 1px solid var(--campus-line); border-radius: .85rem; overflow: hidden; color: var(--campus-ink); background: #fff9f2a8; text-decoration: none; }
-.club h3 { padding: .7rem 1.5rem .95rem; }
+.club { box-shadow: 0 4px 12px #382a190d; transition: transform .18s ease, box-shadow .18s ease; }
+.club h3 { display: flex; justify-content: space-between; align-items: center; gap: .65rem; padding: 1rem clamp(.85rem, 1.65vw, 1.5rem); }
+.club-arrow { display: grid; place-items: center; flex: none; width: 2rem; height: 2rem; border-radius: 50%; background: #fae6dd; color: #a82d22; font-size: 1.15rem; }
+.club:hover, .club:focus-visible { transform: translateY(-3px); box-shadow: 0 8px 18px #382a1920; }
+@media (prefers-reduced-motion: reduce) {
+    .club { transition: none; }
+    .club:hover, .club:focus-visible { transform: none; }
+}
 @media (max-width: 900px) {
     .hero { grid-template-columns: 1fr 1fr; gap: 1.2rem; }
     .highlights { grid-template-columns: 1fr; }

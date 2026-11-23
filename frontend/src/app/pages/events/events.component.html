@@ -35,9 +35,9 @@
             <p role="status">La liste des associations est indisponible.</p>
         }
         <div class="cards">
-            @for (event of items(); track event.id; let index = $index) {
+            @for (event of items(); track event.id) {
                 <article>
-                    <div class="photo" [class.photo-sport]="index === 1" [class.photo-code]="index === 2" aria-hidden="true"></div>
+                    <div class="photo" [class]="photoClass(event.title)" aria-hidden="true"></div>
                     <div class="card-body">
                         <time [attr.datetime]="event.date">{{ dateLabel(event.date) }}</time>
                         <h2>{{ event.title }}</h2>

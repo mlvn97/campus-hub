@@ -34,7 +34,8 @@
             @for (item of items(); track item.id) {
                 <article>
                     <div class="photo" [class.sport]="item.category === 'SPORT'"
-                         [class.tech]="item.category === 'TECH'" aria-hidden="true"></div>
+                         [class.tech]="item.category === 'TECH'" [class.humanitarian]="item.category === 'HUMANITARIAN'"
+                         [class.other]="item.category === 'OTHER'" aria-hidden="true"></div>
                     <div class="copy">
                         <span class="category">{{ categories[item.category] }}</span>
                         <h2>{{ item.name }}</h2>

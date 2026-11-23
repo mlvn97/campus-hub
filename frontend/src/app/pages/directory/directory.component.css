@@ -15,6 +15,10 @@ article { overflow: hidden; border-radius: 1rem; background: #fffdfa; border: 1p
 .photo { aspect-ratio: 448 / 279; background: url('/campus/associations-reference.png') 4.5% 50.32% / 331.92% 379.21% no-repeat; }
 .photo.sport { background-position-x: 50.06%; }
 .photo.tech { background-position-x: 95.48%; }
+.photo.humanitarian {
+    background: url('/campus/events-collection-expo.png') left 50% / 200% auto no-repeat;
+}
+.photo.other { background: url('/campus/auth-campus.png') center 48% / cover no-repeat; }
 .copy { padding: 1.15rem clamp(1rem, 1.85vw, 1.75rem) 1.5rem; overflow-wrap: anywhere; }
 .category { display: inline-block; border-radius: 999px; padding: .35rem .8rem; background: #f9e5dc; color: #a82d22; font-weight: 700; }
 h2 { margin: .85rem 0 .55rem; font-size: clamp(1.65rem, 2.8vw, 2.7rem); }
