@@ -1,0 +1,63 @@
+<main>
+    <header>
+        <h1>Associations</h1>
+        <p>Découvre les associations qui font vivre ton campus.</p>
+    </header>
+    <form (ngSubmit)="applyFilters()">
+        <label>Catégorie
+            <select name="category" [(ngModel)]="category">
+                <option value="">Toutes les catégories</option>
+                @for (key of categoryKeys; track key) { <option [value]="key">{{ categories[key] }}</option> }
+            </select>
+        </label>
+        <label>Statut
+            <select name="status" [(ngModel)]="status">
+                <option value="">Tous les statuts</option>
+                <option value="ACTIVE">Active</option>
+                <option value="SUSPENDED">Suspendue</option>
+            </select>
+        </label>
+        <button class="filter" type="submit" [disabled]="loading()">Filtrer</button>
+    </form>
+
+    @if (loading()) {
+        <p role="status">Chargement…</p>
+    } @else if (error() === 401 || error() === 403) {
+        <p role="alert">Connecte-toi pour consulter les associations. <a routerLink="/auth">Se connecter</a></p>
+    } @else if (error() !== null) {
+        <p role="alert">Impossible de charger les associations. <button (click)="load(page())">Réessayer</button></p>
+    } @else {
+        @if (preview()) {
+            <p class="notice" role="status">Aperçu avec des exemples. L’API Associations est inaccessible.</p>
+        }
+        <div class="cards">
+            @for (item of items(); track item.id) {
+                <article>
+                    <div class="photo" [class.sport]="item.category === 'SPORT'"
+                         [class.tech]="item.category === 'TECH'" [class.humanitarian]="item.category === 'HUMANITARIAN'"
+                         [class.other]="item.category === 'OTHER'" aria-hidden="true"></div>
+                    <div class="copy">
+                        <span class="category">{{ categories[item.category] }}</span>
+                        <h2>{{ item.name }}</h2>
+                        <p class="excerpt">{{ item.description || 'Aucune description.' }}</p>
+                        <details>
+                            <summary>Voir l’association <span aria-hidden="true">→</span></summary>
+                            <p>Statut · {{ item.status === 'ACTIVE' ? 'Active' : 'Suspendue' }}</p>
+                            @if (item.description) { <p>{{ item.description }}</p> }
+                        </details>
+                    </div>
+                </article>
+            } @empty {
+                <p>Aucune association ne correspond aux filtres.</p>
+            }
+        </div>
+        @if (totalPages() > 1) {
+            <nav aria-label="Pagination des associations">
+                <button [disabled]="page() === 0" (click)="load(page() - 1)">Précédent</button>
+                <span aria-current="page">{{ page() + 1 }}</span>
+                @if (page() + 1 < totalPages()) { <button (click)="load(page() + 1)">{{ page() + 2 }}</button> }
+                <button [disabled]="page() + 1 >= totalPages()" (click)="load(page() + 1)">Suivant</button>
+            </nav>
+        }
+    }
+</main>

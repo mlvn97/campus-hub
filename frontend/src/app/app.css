@@ -1,0 +1,24 @@
+.site-nav {
+    min-height: 80px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .75rem clamp(1.2rem, 4.3vw, 4rem);
+    padding: .6rem clamp(1rem, 3.6vw, 3.4rem);
+    border-bottom: 1px solid var(--campus-line);
+}
+.site-nav a { color: var(--campus-ink); font-weight: 700; font-size: clamp(1rem, 1.5vw, 1.35rem); text-decoration: none; }
+.site-nav a:hover, .site-nav a[aria-current="page"]:not(.brand, .account) { text-decoration: underline; text-underline-offset: .25em; }
+.site-nav .brand { font: 700 clamp(2rem, 3vw, 2.8rem)/1 Georgia, serif; margin-right: auto; white-space: nowrap; letter-spacing: -.04em; }
+.brand span { color: var(--campus-coral); }
+.site-nav .account { display: inline-flex; align-items: center; gap: .7rem; padding: .66rem 1.45rem; border-radius: 100px; color: white; background: var(--campus-coral); font-size: 1.15rem; white-space: nowrap; }
+.account svg { width: 1.45rem; fill: none; stroke: currentColor; stroke-width: 2; }
+@media (max-width: 670px) {
+    .site-nav { gap: .75rem 1rem; }
+    .site-nav .brand { flex-basis: 100%; }
+    .site-nav .account { font-size: .95rem; padding: .5rem .85rem; }
+}
+
+.account-avatar { width: 2rem; height: 2rem; border-radius: 50%; object-fit: cover; flex: none; }
+.account-initials { display: grid; place-items: center; background: #fff7ee; color: var(--campus-ink); font-size: .8rem; }
+.account-name { max-width: min(18rem, 58vw); overflow: hidden; text-overflow: ellipsis; }

@@ -3,7 +3,7 @@ import { Component, inject } from "@angular/core";
 import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
 import { UserService } from "../../core/services/user.service";
 import { AuthService } from "../../core/services/auth.service";
-import { Router } from "@angular/router";
+import { ActivatedRoute, Router } from "@angular/router";
 
 @Component({
     selector: 'app-auth',
@@ -18,6 +18,7 @@ export class AuthComponent {
     private userService = inject(UserService);
     private authService = inject(AuthService);
     private router = inject(Router);
+    private route = inject(ActivatedRoute);
 
     isLogin = true;
     errorMessage = '';
@@ -50,7 +51,8 @@ export class AuthComponent {
         this.errorMessage = '';
         this.authService.login(this.loginForm.getRawValue()).subscribe({
             next: () => {
-                this.router.navigate(['/']);
+                const destination = this.route.snapshot.queryParamMap.get('destination');
+                this.router.navigate([destination === 'compte' ? '/compte' : '/']);
             },
             error: () => {
                 this.errorMessage = 'Email ou mot de passe incorrect.';

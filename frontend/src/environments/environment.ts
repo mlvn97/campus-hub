@@ -5,6 +5,6 @@ export const environment = {
         user: "/api/users",
         association: "/api/associations",
         event: "/api/events",
-        news: "/api/news"
+        news: "/api/actualites"
     }
 };

@@ -1,0 +1,72 @@
+<main>
+    <header>
+        <h1>Actualités</h1>
+        <p>Suis la vie du campus et les annonces des associations.</p>
+    </header>
+    <form class="filters" (ngSubmit)="applyFilters()">
+        <label>Catégorie
+            <input name="category" list="news-categories" placeholder="Toutes les catégories" maxlength="80" [(ngModel)]="category">
+            <datalist id="news-categories">
+                @for (option of categories(); track option) { <option [value]="option"></option> }
+            </datalist>
+        </label>
+        <label>Association
+            <select name="association" [(ngModel)]="associationId">
+                <option [ngValue]="null">Toutes les associations</option>
+                @for (association of options(); track association.id) {
+                    <option [ngValue]="association.id">{{ association.name }}</option>
+                }
+            </select>
+        </label>
+        <button class="filter" type="submit" [disabled]="loading()">Filtrer</button>
+    </form>
+
+    @if (loading()) {
+        <p role="status">Chargement…</p>
+    } @else if (error() === 401 || error() === 403) {
+        <p role="alert">Connecte-toi pour consulter les actualités. <a routerLink="/auth">Se connecter</a></p>
+    } @else if (error() !== null) {
+        <p role="alert">Impossible de charger les actualités. <button (click)="load(page())">Réessayer</button></p>
+    } @else {
+        @if (preview()) {
+            <p class="notice" role="status">Aperçu avec des exemples. L’API Actualités est inaccessible.</p>
+        } @else if (associationError()) {
+            <p role="status">La liste des associations est indisponible.</p>
+        }
+        <div class="cards">
+            @for (item of items(); track item.id; let first = $first, index = $index) {
+                @if (index === 1) { <h2 class="latest">Dernières actualités</h2> }
+                <article [class.feature]="first">
+                    <div class="photo" [class.forum]="first" [class.sport]="index === 1" aria-hidden="true"></div>
+                    <div class="copy">
+                        <div class="meta">
+                            @if (!first && item.publishedAt; as date) {
+                                <time [attr.datetime]="date">{{ shortDate(date) }}</time><span aria-hidden="true"> · </span>
+                            }
+                            <span>{{ item.category }}</span>
+                        </div>
+                        <h2>{{ item.title }}</h2>
+                        <p class="excerpt">{{ item.content }}</p>
+                        <button class="read" (click)="read(item, articleDialog)">Lire l’actualité <span aria-hidden="true">→</span></button>
+                    </div>
+                </article>
+            } @empty {
+                <p>Aucune actualité ne correspond aux filtres.</p>
+            }
+        </div>
+        @if (totalPages() > 1) {
+            <nav class="pagination" aria-label="Pagination des actualités">
+                <button [disabled]="page() === 1" (click)="load(page() - 1)">Précédent</button>
+                <span aria-current="page">{{ page() }} / {{ totalPages() }}</span>
+                <button [disabled]="page() >= totalPages()" (click)="load(page() + 1)">Suivant</button>
+            </nav>
+        }
+    }
+    <dialog #articleDialog aria-labelledby="article-title">
+        @if (selected(); as item) {
+            <h2 id="article-title">{{ item.title }}</h2>
+            <p class="full-text">{{ item.content }}</p>
+        }
+        <form method="dialog"><button autofocus>Fermer</button></form>
+    </dialog>
+</main>

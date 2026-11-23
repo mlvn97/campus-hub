@@ -1,0 +1,39 @@
+main { max-width: 1600px; margin: auto; padding: clamp(2rem, 3vw, 3rem) clamp(1rem, 3.2vw, 3rem) 2.5rem; }
+header, form { margin-inline: .45rem; }
+h1, h2 { font-family: Georgia, serif; letter-spacing: -.035em; }
+h1 { font-size: clamp(3.1rem, 5.15vw, 5rem); line-height: 1; margin: 0; }
+header p { font-size: clamp(1.1rem, 1.8vw, 1.6rem); color: #414b61; margin: .75rem 0 0; }
+form { display: grid; grid-template-columns: 1fr 1.04fr minmax(8rem, .38fr); align-items: end; gap: clamp(.65rem, 2vw, 2rem); margin-block: 2.65rem 3.45rem; }
+label { display: grid; gap: .65rem; font-size: clamp(1rem, 1.45vw, 1.25rem); font-weight: 700; }
+select, button { font: inherit; color: inherit; border: 1px solid #b9bdc6; border-radius: .7rem; padding: .65rem 1rem; background: #ffffff75; }
+select { min-width: 0; height: 3.55rem; font-size: clamp(1rem, 1.55vw, 1.35rem); font-weight: 400; }
+button { cursor: pointer; }
+button:disabled { opacity: .55; cursor: default; }
+.filter { min-height: 3.55rem; border-color: transparent; background: var(--campus-coral); color: white; font-size: 1.4rem; font-weight: 700; }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(.85rem, 1.5vw, 1.4rem); }
+article { overflow: hidden; border-radius: 1rem; background: #fffdfb; box-shadow: 0 2px 6px #382a191a; }
+.photo { aspect-ratio: 446 / 280; background: url('/campus/events-reference.png') 4.9% 56.04% / 333.41% 377.86% no-repeat; }
+.photo-sport { background-position: 50.05% 56.04%; }
+.photo-code { background-position: 95.39% 56.04%; }
+.card-body { padding: 1rem clamp(.85rem, 1.9vw, 1.8rem) 1.8rem; }
+time, .location { font-size: clamp(1rem, 1.55vw, 1.4rem); }
+h2 { font-size: clamp(1.6rem, 2.72vw, 2.55rem); margin: .55rem 0; }
+.location { display: flex; align-items: center; gap: .45rem; margin: .65rem 0 1.3rem; }
+.location svg { width: 1.3rem; flex: none; fill: var(--campus-coral); }
+.location circle { fill: white; }
+summary { color: var(--campus-coral); cursor: pointer; font-weight: 700; font-size: clamp(1rem, 1.5vw, 1.35rem); list-style: none; }
+summary:hover { text-decoration: underline; }
+summary::-webkit-details-marker { display: none; }
+nav { display: flex; justify-content: center; align-items: center; gap: .9rem; margin-top: 2.5rem; }
+nav span { padding: .65rem 1rem; border-radius: .65rem; background: var(--campus-coral); color: white; }
+.notice { color: #414b61; margin-top: -1.9rem; }
+@media (max-width: 850px) { .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 580px) { .cards, form { grid-template-columns: 1fr; } form { margin-block: 1.6rem 2.5rem; } .notice { margin-top: -1.4rem; } }
+
+.photo-collection, .photo-exhibition {
+    background-image: url('/campus/events-collection-expo.png');
+    background-size: 200% auto;
+    background-position: left 50%;
+}
+.photo-exhibition { background-position-x: right; }
+.photo-campus { background: url('/campus/auth-campus.png') center 48% / cover no-repeat; }

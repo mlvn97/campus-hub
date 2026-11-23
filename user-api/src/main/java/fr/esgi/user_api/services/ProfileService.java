@@ -24,6 +24,8 @@ public class ProfileService {
             userId,
             null,
             DEFAULT_PROFILE_PICTURE_URL,
+            null,
+            null,
             LocalDateTime.now()
         ));
     }
@@ -41,6 +43,12 @@ public class ProfileService {
         if (request.getProfilePictureUrl() != null) {
             profile.setProfilePictureUrl(request.getProfilePictureUrl());
         }
+        if (request.getStudentGender() != null) {
+            profile.setStudentGender(request.getStudentGender());
+        }
+        if (request.getProfilePictureData() != null) {
+            profile.setProfilePictureData(request.getProfilePictureData().isEmpty() ? null : request.getProfilePictureData());
+        }
         return toProfileResponse(profileRepository.save(profile));
     }
 
@@ -54,6 +62,8 @@ public class ProfileService {
             profile.getUserId(),
             profile.getBio(),
             profile.getProfilePictureUrl(),
+            profile.getStudentGender(),
+            profile.getProfilePictureData(),
             profile.getCreatedAt().toString()
         );
     }
