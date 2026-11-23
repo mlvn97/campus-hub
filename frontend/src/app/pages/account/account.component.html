@@ -1,0 +1,69 @@
+<main>
+    <header>
+        <h1>Mon compte</h1>
+        <p>Gère ton profil sur Campus Hub.</p>
+    </header>
+
+    @if (loading()) {
+        <p role="status">Chargement du profil…</p>
+    } @else if (loadError()) {
+        <p role="alert">Impossible de charger ton profil.</p>
+        <button type="button" (click)="load()">Réessayer</button>
+    } @else if (user(); as account) {
+        <div class="layout">
+            <section class="panel identity" aria-label="Identité">
+                <div class="avatar" aria-hidden="true">
+                    @if (photo(); as url) {
+                        <img [src]="url" alt="" referrerpolicy="no-referrer" (error)="photo.set('')">
+                    } @else {
+                        <span>{{ initials(account.name) }}</span>
+                    }
+                </div>
+                <h2>{{ account.name }}</h2>
+                <p>{{ roleLabel(account.role) }}</p>
+                <button type="button" class="logout" (click)="logout()">Se déconnecter</button>
+            </section>
+
+            <section class="panel profile" aria-labelledby="profile-heading">
+                <h2 id="profile-heading">Mon profil</h2>
+                <form #profileForm="ngForm" (ngSubmit)="save(profileForm)">
+                    <label>Adresse e-mail
+                        <input type="email" [value]="account.email" readonly>
+                    </label>
+
+                    @if (account.role === 'STUDENT') {
+                        <label>Je suis
+                            <select name="studentGender" [(ngModel)]="studentGender" [disabled]="saving()">
+                                <option value="NON_RENSEIGNE">Non renseigné</option>
+                                <option value="MASCULIN">Étudiant (masculin)</option>
+                                <option value="FEMININ">Étudiante (féminin)</option>
+                            </select>
+                        </label>
+                    }
+
+                    <label>Bio
+                        <textarea name="bio" maxlength="300" [(ngModel)]="bio" [disabled]="saving()"></textarea>
+                    </label>
+
+                    <label>
+                        <span>Photo de profil <span class="optional">(facultatif)</span></span>
+                        <input #photoFile type="file" accept="image/jpeg,image/png,image/webp"
+                            [disabled]="saving() || preparingPhoto()" (change)="choosePhoto(photoFile)">
+                    </label>
+                    @if (photoError()) { <p role="alert">{{ photoError() }}</p> }
+
+                    <button class="primary" type="submit" [disabled]="saving() || preparingPhoto() || profileForm.invalid">
+                        {{ saving() ? 'Enregistrement…' : 'Enregistrer les modifications' }}
+                    </button>
+                    @if (message()) { <p role="status">{{ message() }}</p> }
+                    @if (saveError()) { <p role="alert">{{ saveError() }}</p> }
+                </form>
+            </section>
+        </div>
+    } @else {
+        <section class="panel sign-in">
+            <h2>Connecte-toi à ton compte</h2>
+            <a class="primary" routerLink="/auth" [queryParams]="{ destination: 'compte' }">Se connecter</a>
+        </section>
+    }
+</main>

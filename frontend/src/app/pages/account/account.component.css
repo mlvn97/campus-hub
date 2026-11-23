@@ -1,0 +1,27 @@
+main { max-width: 1600px; margin: auto; padding: clamp(2rem, 3vw, 3rem) clamp(1rem, 2.9vw, 2.75rem) 3rem; }
+header { margin-inline: .65rem; margin-bottom: clamp(1.5rem, 3vw, 2.8rem); }
+h1, h2 { font-family: Georgia, serif; letter-spacing: -.035em; margin: 0; }
+h1 { font-size: clamp(3rem, 5vw, 4.85rem); line-height: 1; }
+header p { margin: .6rem 0 0; font-size: clamp(1.1rem, 1.7vw, 1.6rem); }
+.layout { display: grid; grid-template-columns: minmax(0, 31fr) minmax(0, 67fr); gap: clamp(1rem, 1.85vw, 1.75rem); }
+.panel { min-width: 0; padding: clamp(1.3rem, 3vw, 2.85rem); border: 1px solid #cbd1df; border-radius: 1.2rem; background: #fffdfa80; }
+.identity { text-align: center; overflow-wrap: anywhere; }
+.avatar { display: grid; place-items: center; width: min(100%, 18rem); aspect-ratio: 1; margin: .35rem auto clamp(1rem, 2.4vw, 2.25rem); border-radius: 50%; overflow: hidden; background: #f9e5dc; color: var(--campus-ink); font: 700 clamp(3rem, 6vw, 5rem) Georgia, serif; }
+.avatar img { width: 100%; height: 100%; object-fit: cover; }
+.identity h2 { font-size: clamp(1.8rem, 3.15vw, 3rem); }
+.identity p { font-size: clamp(1.1rem, 1.8vw, 1.7rem); margin: .45rem 0 clamp(1.3rem, 3.3vw, 3rem); }
+.profile h2, .sign-in h2 { font-size: clamp(2rem, 3.6vw, 3.4rem); margin-bottom: 1.5rem; }
+form { display: grid; gap: clamp(1rem, 2.1vw, 2rem); }
+label { display: grid; gap: .65rem; font-weight: 700; font-size: clamp(1.05rem, 1.6vw, 1.45rem); }
+.optional { font-weight: 400; }
+input, textarea, select, button, .primary { font: inherit; color: inherit; border: 1px solid #aebad1; border-radius: .7rem; padding: .65rem clamp(.8rem, 1.45vw, 1.4rem); background: #fffdfa85; }
+input, textarea, select { width: 100%; min-width: 0; font-weight: 400; }
+input[readonly] { background: #e8e8ee; }
+textarea { min-height: clamp(7rem, 10vw, 9.25rem); resize: vertical; }
+button, .primary { justify-self: start; font-size: clamp(1rem, 1.65vw, 1.45rem); cursor: pointer; }
+.logout { width: min(100%, 17.3rem); }
+.primary { display: inline-block; background: var(--campus-coral); border-color: transparent; color: white; padding: .85rem clamp(1rem, 2.4vw, 2.2rem); text-decoration: none; }
+button:disabled { opacity: .6; cursor: default; }
+.sign-in { max-width: 38rem; }
+form p { margin: 0; }
+@media (max-width: 700px) { .layout { grid-template-columns: 1fr; } .avatar { max-width: 10rem; } }

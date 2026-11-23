@@ -1,1 +1,14 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+    --campus-ink: #10162f;
+    --campus-coral: #d94334;
+    --campus-line: #ebe0d5;
+    --campus-cream: #fbf5ee;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body {
+    margin: 0;
+    background: var(--campus-cream);
+    color: var(--campus-ink);
+    font-family: Arial, Helvetica, sans-serif;
+}
+a:focus-visible, button:focus-visible { outline: 3px solid #283b70; outline-offset: 4px; }

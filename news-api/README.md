@@ -2,7 +2,7 @@
 
 Le service démarre sur le port **8083** et partage la base PostgreSQL de Campus Hub. Configure les variables `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` et `JWT_SECRET` à partir de `.env.example`. Renseigne le même secret JWT encodé en Base64 que dans `user-api`. Les variables doivent être chargées dans le terminal avant de démarrer le service.
 
-Depuis `news-api`, lance `./mvnw spring-boot:run` ou `.\mvnw.cmd spring-boot:run` sous Windows. Hibernate crée la table `news` au démarrage avec la configuration actuelle. Les tables partagées `associations` et `memberships` sont gérées par `association-api` et doivent être disponibles pour les opérations liées aux associations.
+Depuis `news-api`, lance `./mvnw spring-boot:run` ou `.\mvnw.cmd spring-boot:run` sous Windows. Hibernate crée la table `news` au démarrage avec la configuration actuelle. Pour les opérations liées aux associations, news-api transmet le JWT à association-api. Configure ASSOCIATION_API_URL avec http://localhost:8081 hors Docker. Sous Docker, la valeur par défaut est http://association-api:8081.
 
 Ouvre Swagger à l’adresse [localhost:8083/swagger-ui.html](http://localhost:8083/swagger-ui.html). La spécification OpenAPI est disponible à [localhost:8083/v3/api-docs](http://localhost:8083/v3/api-docs). Utilise **Authorize** avec un JWT délivré par `user-api` pour exécuter les requêtes.
 
@@ -33,4 +33,4 @@ Le fil accepte `page` (à partir de 1, défaut 1), `limit` (de 1 à 100, défaut
 
 ## Tests d’intégration
 
-Utilise une base PostgreSQL **vide et jetable**. Les tests recréent la table `news` et insèrent des associations et des présidences de test. Configure `NEWS_TEST_DB_URL` (par exemple `jdbc:postgresql://localhost:5432/campus_news_test`), `NEWS_TEST_DB_USERNAME` et, si nécessaire, `NEWS_TEST_DB_PASSWORD`. Lance ensuite `./mvnw test` ou `.\mvnw.cmd test` sous Windows. Sans `NEWS_TEST_DB_URL`, Maven compile le projet et ignore la suite d’intégration.
+Utilise une base PostgreSQL **vide et jetable**. Les tests recréent la table `news` et simulent les réponses d’association-api sur un serveur HTTP local. Configure `NEWS_TEST_DB_URL` (par exemple `jdbc:postgresql://localhost:5432/campus_news_test`), `NEWS_TEST_DB_USERNAME` et, si nécessaire, `NEWS_TEST_DB_PASSWORD`. Lance ensuite `./mvnw test` ou `.\mvnw.cmd test` sous Windows. Sans `NEWS_TEST_DB_URL`, Maven compile le projet et ignore la suite d’intégration.

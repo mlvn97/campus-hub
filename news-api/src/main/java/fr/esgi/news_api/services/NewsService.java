@@ -49,19 +49,19 @@ public class NewsService {
                 page, limit, result.getTotalElements(), result.getTotalPages());
     }
 
-    public NewsResponse get(long id, Authentication actor) {
+    public NewsResponse get(long id, Authentication actor, String authorization) {
         News news = repository.findById(id).orElseThrow(NewsService::notFound);
-        if (news.getStatus() != NewsStatus.PUBLIEE && !access.canManage(actor, news.getAssociationId())) {
+        if (news.getStatus() != NewsStatus.PUBLIEE && !access.canManage(actor, news.getAssociationId(), authorization)) {
             throw notFound();
         }
         return NewsResponse.from(news);
     }
 
     @Transactional
-    public NewsResponse create(CreateNewsRequest request, Authentication actor) {
+    public NewsResponse create(CreateNewsRequest request, Authentication actor, String authorization) {
         Long associationId = request.associationId();
-        requireManager(actor, associationId);
-        if (associationId != null && !access.associationExists(associationId)) {
+        requireManager(actor, associationId, authorization);
+        if (associationId != null && !access.associationExists(associationId, authorization)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Association introuvable");
         }
         return NewsResponse.from(repository.save(
@@ -69,41 +69,41 @@ public class NewsService {
     }
 
     @Transactional
-    public NewsResponse update(long id, UpdateNewsRequest request, Authentication actor) {
-        News news = managedNews(id, actor);
+    public NewsResponse update(long id, UpdateNewsRequest request, Authentication actor, String authorization) {
+        News news = managedNews(id, actor, authorization);
         news.edit(request.title(), request.content(), request.category());
         return NewsResponse.from(news);
     }
 
     @Transactional
-    public void delete(long id, Authentication actor) {
-        repository.delete(managedNews(id, actor));
+    public void delete(long id, Authentication actor, String authorization) {
+        repository.delete(managedNews(id, actor, authorization));
     }
 
     @Transactional
-    public NewsResponse publish(long id, Authentication actor) {
-        News news = managedNews(id, actor);
+    public NewsResponse publish(long id, Authentication actor, String authorization) {
+        News news = managedNews(id, actor, authorization);
         requireStatus(news, NewsStatus.BROUILLON);
         news.publish(Instant.now());
         return NewsResponse.from(news);
     }
 
     @Transactional
-    public NewsResponse archive(long id, Authentication actor) {
-        News news = managedNews(id, actor);
+    public NewsResponse archive(long id, Authentication actor, String authorization) {
+        News news = managedNews(id, actor, authorization);
         requireStatus(news, NewsStatus.PUBLIEE);
         news.archive();
         return NewsResponse.from(news);
     }
 
-    private News managedNews(long id, Authentication actor) {
+    private News managedNews(long id, Authentication actor, String authorization) {
         News news = repository.findForUpdate(id).orElseThrow(NewsService::notFound);
-        requireManager(actor, news.getAssociationId());
+        requireManager(actor, news.getAssociationId(), authorization);
         return news;
     }
 
-    private void requireManager(Authentication actor, Long associationId) {
-        if (!access.canManage(actor, associationId)) {
+    private void requireManager(Authentication actor, Long associationId, String authorization) {
+        if (!access.canManage(actor, associationId, authorization)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
     }

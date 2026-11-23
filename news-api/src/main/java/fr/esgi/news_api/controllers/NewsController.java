@@ -15,6 +15,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -49,41 +51,47 @@ public class NewsController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Consulter une actualité")
-    public NewsResponse get(@PathVariable @Positive long id, Authentication actor) {
-        return service.get(id, actor);
+    public NewsResponse get(@PathVariable @Positive long id, Authentication actor,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
+        return service.get(id, actor, authorization);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Créer un brouillon")
-    public ResponseEntity<NewsResponse> create(@Valid @RequestBody CreateNewsRequest request, Authentication actor) {
-        NewsResponse news = service.create(request, actor);
+    public ResponseEntity<NewsResponse> create(@Valid @RequestBody CreateNewsRequest request, Authentication actor,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
+        NewsResponse news = service.create(request, actor, authorization);
         return ResponseEntity.created(URI.create("/api/actualites/" + news.id())).body(news);
     }
 
     @PatchMapping("/{id}")
     @Operation(summary = "Modifier le titre, le contenu ou la catégorie")
     public NewsResponse update(@PathVariable @Positive long id,
-            @Valid @RequestBody UpdateNewsRequest request, Authentication actor) {
-        return service.update(id, request, actor);
+            @Valid @RequestBody UpdateNewsRequest request, Authentication actor,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
+        return service.update(id, request, actor, authorization);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Supprimer une actualité")
-    public void delete(@PathVariable @Positive long id, Authentication actor) {
-        service.delete(id, actor);
+    public void delete(@PathVariable @Positive long id, Authentication actor,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
+        service.delete(id, actor, authorization);
     }
 
     @PatchMapping("/{id}/publier")
     @Operation(summary = "Publier un brouillon")
-    public NewsResponse publish(@PathVariable @Positive long id, Authentication actor) {
-        return service.publish(id, actor);
+    public NewsResponse publish(@PathVariable @Positive long id, Authentication actor,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
+        return service.publish(id, actor, authorization);
     }
 
     @PatchMapping("/{id}/archiver")
     @Operation(summary = "Archiver une actualité publiée")
-    public NewsResponse archive(@PathVariable @Positive long id, Authentication actor) {
-        return service.archive(id, actor);
+    public NewsResponse archive(@PathVariable @Positive long id, Authentication actor,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
+        return service.archive(id, actor, authorization);
     }
 }

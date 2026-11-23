@@ -1,13 +1,17 @@
 import { Routes } from '@angular/router';
+import { AccountComponent } from './pages/account/account.component';
 import { AuthComponent } from './pages/auth/auth.component';
 import { DirectoryComponent } from './pages/directory/directory.component';
+import { EventsComponent } from './pages/events/events.component';
+import { NewsComponent } from './pages/news/news.component';
 import { HomepageComponent } from './pages/homepage/homepage.component';
 
 export const routes: Routes = [
     { path: '', component: HomepageComponent },
     { path: 'auth', component: AuthComponent },
-    { path: 'associations', component: DirectoryComponent, data: { section: 'associations' } },
-    { path: 'evenements', component: DirectoryComponent, data: { section: 'evenements' } },
-    { path: 'actualites', component: DirectoryComponent, data: { section: 'actualites' } },
+    { path: 'compte', component: AccountComponent },
+    { path: 'associations', component: DirectoryComponent },
+    { path: 'evenements', component: EventsComponent },
+    { path: 'actualites', component: NewsComponent },
     { path: '**', redirectTo: '' }
 ];

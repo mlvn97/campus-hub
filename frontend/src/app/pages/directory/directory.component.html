@@ -1,68 +1,61 @@
 <main>
-    <h1>{{ title }}</h1>
-    <form (ngSubmit)="load(1)" ngNativeValidate>
-        @switch (section) {
-            @case ('associations') {
-                <label>Catégorie
-                    <select name="category" [(ngModel)]="associationCategory">
-                        <option value="">Toutes</option>
-                        <option value="SPORT">Sport</option>
-                        <option value="CULTURE">Culture</option>
-                        <option value="TECH">Technologie</option>
-                        <option value="HUMANITARIAN">Humanitaire</option>
-                        <option value="OTHER">Autre</option>
-                    </select>
-                </label>
-            }
-            @case ('evenements') {
-                <label>Statut
-                    <select name="status" [(ngModel)]="eventStatus">
-                        <option value="">Tous</option>
-                        <option value="DRAFT">Brouillon</option>
-                        <option value="POSTED">Publié</option>
-                        <option value="COMPLETE">Complet</option>
-                        <option value="OVER">Terminé</option>
-                        <option value="CANCELLED">Annulé</option>
-                    </select>
-                </label>
-            }
-            @case ('actualites') {
-                <label>Catégorie
-                    <input name="category" [(ngModel)]="newsCategory" maxlength="80">
-                </label>
-            }
-        }
-        @if (section !== 'associations') {
-            <label>Identifiant de l’association
-                <input type="number" name="association" [(ngModel)]="associationId" min="1" step="1">
-            </label>
-        }
-        <button type="submit" [disabled]="loading()">Filtrer</button>
+    <header>
+        <h1>Associations</h1>
+        <p>Découvre les associations qui font vivre ton campus.</p>
+    </header>
+    <form (ngSubmit)="applyFilters()">
+        <label>Catégorie
+            <select name="category" [(ngModel)]="category">
+                <option value="">Toutes les catégories</option>
+                @for (key of categoryKeys; track key) { <option [value]="key">{{ categories[key] }}</option> }
+            </select>
+        </label>
+        <label>Statut
+            <select name="status" [(ngModel)]="status">
+                <option value="">Tous les statuts</option>
+                <option value="ACTIVE">Active</option>
+                <option value="SUSPENDED">Suspendue</option>
+            </select>
+        </label>
+        <button class="filter" type="submit" [disabled]="loading()">Filtrer</button>
     </form>
 
     @if (loading()) {
         <p role="status">Chargement…</p>
     } @else if (error() === 401 || error() === 403) {
-        <p role="alert">Connecte-toi avec un compte autorisé pour consulter cette page.</p>
-        <a routerLink="/auth">Se connecter</a>
+        <p role="alert">Connecte-toi pour consulter les associations. <a routerLink="/auth">Se connecter</a></p>
     } @else if (error() !== null) {
-        <p role="alert">Impossible de charger les résultats.</p>
-        <button type="button" (click)="load(page())">Réessayer</button>
+        <p role="alert">Impossible de charger les associations. <button (click)="load(page())">Réessayer</button></p>
     } @else {
-        @for (item of items(); track item.id) {
-            <article>
-                <h2>{{ item.title }}</h2>
-                @if (item.meta) { <p class="meta">{{ item.meta }}</p> }
-                @if (item.description) { <p class="description">{{ item.description }}</p> }
-            </article>
-        } @empty {
-            <p>Aucun résultat.</p>
+        @if (preview()) {
+            <p class="notice" role="status">Aperçu avec des exemples. L’API Associations est inaccessible.</p>
         }
+        <div class="cards">
+            @for (item of items(); track item.id) {
+                <article>
+                    <div class="photo" [class.sport]="item.category === 'SPORT'"
+                         [class.tech]="item.category === 'TECH'" aria-hidden="true"></div>
+                    <div class="copy">
+                        <span class="category">{{ categories[item.category] }}</span>
+                        <h2>{{ item.name }}</h2>
+                        <p class="excerpt">{{ item.description || 'Aucune description.' }}</p>
+                        <details>
+                            <summary>Voir l’association <span aria-hidden="true">→</span></summary>
+                            <p>Statut · {{ item.status === 'ACTIVE' ? 'Active' : 'Suspendue' }}</p>
+                            @if (item.description) { <p>{{ item.description }}</p> }
+                        </details>
+                    </div>
+                </article>
+            } @empty {
+                <p>Aucune association ne correspond aux filtres.</p>
+            }
+        </div>
         @if (totalPages() > 1) {
-            <nav class="pagination" aria-label="Pagination">
-                <button type="button" [disabled]="page() <= 1" (click)="load(page() - 1)">Précédente</button>
-                <span>Page {{ page() }} sur {{ totalPages() }}</span>
-                <button type="button" [disabled]="page() >= totalPages()" (click)="load(page() + 1)">Suivante</button>
+            <nav aria-label="Pagination des associations">
+                <button [disabled]="page() === 0" (click)="load(page() - 1)">Précédent</button>
+                <span aria-current="page">{{ page() + 1 }}</span>
+                @if (page() + 1 < totalPages()) { <button (click)="load(page() + 1)">{{ page() + 2 }}</button> }
+                <button [disabled]="page() + 1 >= totalPages()" (click)="load(page() + 1)">Suivant</button>
             </nav>
         }
     }

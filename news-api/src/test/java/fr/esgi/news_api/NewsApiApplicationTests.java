@@ -1,5 +1,8 @@
 package fr.esgi.news_api;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Date;
 
@@ -7,15 +10,17 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 import io.jsonwebtoken.Jwts;
-import org.junit.jupiter.api.BeforeAll;
+import com.sun.net.httpserver.HttpServer;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -39,20 +44,38 @@ class NewsApiApplicationTests {
     @Autowired
     private MockMvc mvc;
 
-    @BeforeAll
-    static void sharedTables(@Autowired JdbcTemplate jdbc) {
-        jdbc.execute("create table if not exists associations (id bigint primary key)");
-        jdbc.execute("""
-                create table if not exists memberships (
-                    user_id bigint not null, association_id bigint not null, role varchar(32) not null,
-                    primary key (user_id, association_id)
-                )
-                """);
-        jdbc.update("insert into associations values (101), (202) on conflict do nothing");
-        jdbc.update("""
-                insert into memberships values (10, 101, 'PRESIDENT'), (20, 202, 'PRESIDENT')
-                on conflict do nothing
-                """);
+    private static HttpServer associations;
+
+    @DynamicPropertySource
+    static void associationApi(DynamicPropertyRegistry properties) throws IOException {
+        associations = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        associations.createContext("/api/associations/", exchange -> {
+            try (exchange) {
+                String path = exchange.getRequestURI().getPath();
+                String token = exchange.getRequestHeaders().getFirst("Authorization");
+                if (path.endsWith("/members/can-manage")) {
+                    boolean allowed = (path.equals("/api/associations/101/members/can-manage") && PRESIDENT.equals(token))
+                            || (path.equals("/api/associations/202/members/can-manage") && OTHER_PRESIDENT.equals(token));
+                    byte[] body = Boolean.toString(allowed).getBytes(StandardCharsets.UTF_8);
+                    exchange.getResponseHeaders().set("Content-Type", "application/json");
+                    exchange.sendResponseHeaders(200, body.length);
+                    exchange.getResponseBody().write(body);
+                } else if (path.equals("/api/associations/101") || path.equals("/api/associations/202")) {
+                    exchange.sendResponseHeaders(token == null ? 401 : 200, -1);
+                } else {
+                    exchange.sendResponseHeaders(404, -1);
+                }
+            }
+        });
+        associations.start();
+        properties.add("association-api.url", () -> "http://127.0.0.1:" + associations.getAddress().getPort());
+    }
+
+    @AfterAll
+    static void stopAssociationApi() {
+        if (associations != null) {
+            associations.stop(0);
+        }
     }
 
     @Test
