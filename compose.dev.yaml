@@ -65,6 +65,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        BUILD_CONFIGURATION: development
     ports:
       - "127.0.0.1:4200:80"    
     volumes:

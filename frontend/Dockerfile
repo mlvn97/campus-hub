@@ -1,4 +1,4 @@
-# Build Vite
+# Build Angular app
 FROM node:22-alpine AS build
 
 WORKDIR /app
@@ -7,7 +7,8 @@ COPY package*.json ./
 RUN npm ci
 
 COPY . .
-RUN npm run build
+ARG BUILD_CONFIGURATION=production
+RUN npm run build -- --configuration=${BUILD_CONFIGURATION}
 
 # Web server
 FROM nginx:alpine
