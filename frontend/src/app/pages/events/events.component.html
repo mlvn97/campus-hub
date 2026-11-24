@@ -1,14 +1,25 @@
 <main>
-    <header>
-        <h1>Événements</h1>
-        <p>Retrouve les prochains rendez-vous du campus.</p>
-    </header>
-    <form (ngSubmit)="applyFilters()">
+    <div class="page-heading">
+        <header>
+            <span class="eyebrow">CAMPUS HUB</span>
+            <h1>Événements</h1>
+            <p>Retrouve les prochains rendez-vous du campus.</p>
+        </header>
+        @if (!preview() && presidentAssociations().length > 0) {
+            <button class="create-button" type="button" (click)="openCreateDialog(createDialog)">
+                <i class="bi bi-plus-lg" aria-hidden="true"></i> Créer un événement
+            </button>
+        }
+    </div>
+
+    <form class="filters" (ngSubmit)="applyFilters()">
         <label>Statut
             <select name="status" [(ngModel)]="status">
                 <option value="">Tous les statuts</option>
-                <option value="DRAFT">Brouillon</option><option value="POSTED">Publié</option>
-                <option value="COMPLETE">Complet</option><option value="OVER">Terminé</option>
+                <option value="DRAFT">Brouillon</option>
+                <option value="POSTED">Publié</option>
+                <option value="COMPLETE">Complet</option>
+                <option value="OVER">Terminé</option>
                 <option value="CANCELLED">Annulé</option>
             </select>
         </label>
@@ -20,48 +31,212 @@
                 }
             </select>
         </label>
-        <button class="filter" type="submit" [disabled]="loading()">Filtrer</button>
+        <button class="filter-button" type="submit" [disabled]="loading()">Filtrer</button>
     </form>
+
+    @if (createMessage()) {
+        <p class="success-message" role="status">{{ createMessage() }}</p>
+    }
+    @if (eventMutationMessage()) {
+        <p class="success-message" role="status">{{ eventMutationMessage() }}</p>
+    }
+
     @if (loading()) {
-        <p role="status">Chargement…</p>
+        <p class="page-message" role="status">Chargement des événements…</p>
     } @else if (error() === 401 || error() === 403) {
-        <p role="alert">Connecte-toi pour consulter les événements. <a routerLink="/auth">Se connecter</a></p>
+        <p class="page-message" role="alert">Connecte-toi pour consulter les événements. <a routerLink="/auth">Se connecter</a></p>
     } @else if (error() !== null) {
-        <p role="alert">Impossible de charger les événements. <button (click)="load(page())">Réessayer</button></p>
+        <p class="page-message" role="alert">Impossible de charger les événements. <button type="button" (click)="load(page())">Réessayer</button></p>
     } @else {
         @if (preview()) {
             <p class="notice" role="status">Aperçu avec des exemples. L’API Événements est inaccessible.</p>
         } @else if (associationError()) {
-            <p role="status">La liste des associations est indisponible.</p>
+            <p class="notice" role="status">La liste des associations est indisponible.</p>
         }
-        <div class="cards">
+        @if (presidentLookupError()) {
+            <p class="notice" role="status">Impossible de vérifier les associations dont tu es président.</p>
+        }
+        @if (registrationLookupError()) {
+            <p class="notice" role="status">Impossible de vérifier l’état de certaines inscriptions.</p>
+        }
+        @if (registrationActionError()) {
+            <p class="action-error" role="alert">{{ registrationActionError() }}</p>
+        }
+        <div class="event-list">
             @for (event of items(); track event.id) {
-                <article>
-                    <div class="photo" [class]="photoClass(event.title)" aria-hidden="true"></div>
-                    <div class="card-body">
-                        <time [attr.datetime]="event.date">{{ dateLabel(event.date) }}</time>
+                <article class="event-row">
+                    <div class="event-icon" aria-hidden="true">
+                        <i class="bi bi-calendar-event"></i>
+                    </div>
+                    <div class="event-copy">
+                        <div class="event-meta">
+                            <span [class]="'status ' + statusClass(event.status)">{{ statusLabels[event.status] }}</span>
+                            <time [attr.datetime]="event.date">{{ dateLabel(event.date) }}</time>
+                        </div>
                         <h2>{{ event.title }}</h2>
-                        <p class="location">
-                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-7.5 8-13a8 8 0 1 0-16 0c0 5.5 8 13 8 13Z"/><circle cx="12" cy="9" r="3"/></svg>
-                            {{ event.location }}
+                        <p class="event-details">
+                            <span><i class="bi bi-geo-alt" aria-hidden="true"></i>{{ event.location }}</span>
+                            <span><i class="bi bi-people" aria-hidden="true"></i>{{ event.capacity }} places</span>
                         </p>
-                        <details>
-                            <summary>Voir l’événement <span aria-hidden="true">→</span></summary>
-                            <p>{{ event.description || 'Aucune description.' }}</p>
-                        </details>
+                        <p class="description">{{ event.description || 'Aucune description pour le moment.' }}</p>
+                        @if (!preview() && authenticated() && (canRegister(event) || registrations()[event.id])) {
+                            <div class="event-actions">
+                                @if (registrations()[event.id]; as registration) {
+                                    <span class="registration-status" [class.waiting]="registration.status === 'PENDING'">
+                                        {{ registration.status === 'CONFIRMED' ? 'Inscrit' : 'En attente' }}
+                                    </span>
+                                    <button type="button" class="registration-button"
+                                        [disabled]="registeringEventId() !== null" (click)="toggleRegistration(event)">
+                                        {{ registeringEventId() === event.id
+                                            ? 'Mise à jour…'
+                                            : registration.status === 'CONFIRMED' ? 'Se désinscrire' : 'Annuler mon inscription' }}
+                                    </button>
+                                } @else if (canRegister(event)) {
+                                    <button type="button" class="registration-button"
+                                        [disabled]="registeringEventId() !== null" (click)="toggleRegistration(event)">
+                                        {{ registeringEventId() === event.id ? 'Inscription…' : 'S’inscrire' }}
+                                    </button>
+                                }
+                            </div>
+                        } @else if (!preview() && !authenticated() && canRegister(event)) {
+                            <a class="login-link" routerLink="/auth">Connecte-toi pour t’inscrire</a>
+                        }
+                        @if (!preview() && canManageEvent(event)) {
+                            <button type="button" class="manage-event-button"
+                                (click)="openManageEventDialog(event, manageEventDialog)">
+                                {{ event.status === 'DRAFT' ? 'Modifier' : 'Gérer l’événement' }}
+                            </button>
+                        }
                     </div>
                 </article>
             } @empty {
-                <p>Aucun événement ne correspond aux filtres.</p>
+                <div class="empty-state">Aucun événement ne correspond aux filtres.</div>
             }
         </div>
         @if (totalPages() > 1) {
             <nav aria-label="Pagination des événements">
-                <button (click)="load(page() - 1)" [disabled]="page() === 0">Précédent</button>
-                <span aria-current="page">{{ page() + 1 }}</span>
-                @if (page() + 1 < totalPages()) { <button (click)="load(page() + 1)">{{ page() + 2 }}</button> }
-                <button (click)="load(page() + 1)" [disabled]="page() + 1 >= totalPages()">Suivant</button>
+                <button type="button" [disabled]="page() === 0" (click)="load(page() - 1)">Précédent</button>
+                <span aria-current="page">{{ page() + 1 }} / {{ totalPages() }}</span>
+                <button type="button" [disabled]="page() + 1 >= totalPages()" (click)="load(page() + 1)">Suivant</button>
             </nav>
         }
     }
+
+    <dialog #createDialog class="create-event-dialog" aria-labelledby="create-heading">
+        <h2 id="create-heading">Créer un événement</h2>
+        <p class="dialog-intro">L’événement sera créé en brouillon.</p>
+        <form #eventForm="ngForm" (ngSubmit)="createEvent(eventForm, createDialog)">
+            <label>Association
+                <select name="associationId" required [(ngModel)]="newEvent.associationId">
+                    <option [ngValue]="0">Choisir une association</option>
+                    @for (association of presidentAssociations(); track association.id) {
+                        <option [ngValue]="association.id">{{ association.name }}</option>
+                    }
+                </select>
+            </label>
+            <label>Titre
+                <input name="title" required minlength="2" maxlength="50" [(ngModel)]="newEvent.title">
+            </label>
+            <label>Date et heure
+                <input name="date" type="datetime-local" required [(ngModel)]="newEvent.date">
+            </label>
+            <label>Lieu
+                <input name="location" required [(ngModel)]="newEvent.location">
+            </label>
+            <label>Nombre de places
+                <input name="capacity" type="number" min="1" required [(ngModel)]="newEvent.capacity">
+            </label>
+            <label>Description <span class="optional">(facultatif)</span>
+                <textarea name="description" maxlength="300" [(ngModel)]="newEvent.description"></textarea>
+            </label>
+            @if (createError()) {
+                <p class="form-error" role="alert">{{ createError() }}</p>
+            }
+            <div class="dialog-actions">
+                <button type="button" class="cancel-button" [disabled]="creating()" (click)="createDialog.close()">Annuler</button>
+                <button class="create-button" type="submit"
+                    [disabled]="creating() || eventForm.invalid || newEvent.associationId <= 0">
+                    {{ creating() ? 'Création…' : 'Créer l’événement' }}
+                </button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog #manageEventDialog class="event-management-dialog" aria-labelledby="manage-event-heading">
+        @if (selectedEvent(); as event) {
+            <h2 id="manage-event-heading">{{ event.status === 'DRAFT' ? 'Modifier le brouillon' : 'Gérer l’événement' }}</h2>
+            @if (event.status !== 'DRAFT') {
+                <p class="dialog-intro">Seuls les brouillons peuvent être modifiés. Les informations sont en lecture seule.</p>
+            }
+            <form #editEventForm="ngForm">
+                <label>Association
+                    <select name="associationId" required [(ngModel)]="eventDraft.associationId"
+                        [disabled]="event.status !== 'DRAFT' || savingEvent()">
+                        @for (association of presidentAssociations(); track association.id) {
+                            <option [ngValue]="association.id">{{ association.name }}</option>
+                        }
+                    </select>
+                </label>
+                <label>Titre
+                    <input name="title" required minlength="2" maxlength="50" [(ngModel)]="eventDraft.title"
+                        [disabled]="event.status !== 'DRAFT' || savingEvent()">
+                </label>
+                <label>Date et heure
+                    <input name="date" type="datetime-local" required [(ngModel)]="eventDraft.date"
+                        [disabled]="event.status !== 'DRAFT' || savingEvent()">
+                </label>
+                <label>Lieu
+                    <input name="location" required [(ngModel)]="eventDraft.location"
+                        [disabled]="event.status !== 'DRAFT' || savingEvent()">
+                </label>
+                <label>Nombre de places
+                    <input name="capacity" type="number" min="1" required [(ngModel)]="eventDraft.capacity"
+                        [disabled]="event.status !== 'DRAFT' || savingEvent()">
+                </label>
+                <label>Description <span class="optional">(facultatif)</span>
+                    <textarea name="description" maxlength="300" [(ngModel)]="eventDraft.description"
+                        [disabled]="event.status !== 'DRAFT' || savingEvent()"></textarea>
+                </label>
+                <p class="readonly-status">Statut : {{ statusLabels[event.status] }}</p>
+                @if (eventMutationError()) {
+                    <p class="form-error" role="alert">{{ eventMutationError() }}</p>
+                }
+                <div class="dialog-actions">
+                    <button type="button" class="cancel-button" [disabled]="savingEvent()"
+                        (click)="manageEventDialog.close()">Annuler les modifications</button>
+                    @if (event.status === 'DRAFT') {
+                        <button type="button" class="draft-button"
+                            [disabled]="savingEvent() || editEventForm.invalid"
+                            (click)="saveEventDraft(editEventForm, manageEventDialog)">
+                            Garder en brouillon
+                        </button>
+                        <button type="button" class="publish-button"
+                            [disabled]="savingEvent() || editEventForm.invalid"
+                            (click)="publishEvent(editEventForm, manageEventDialog)">
+                            Publier
+                        </button>
+                    }
+                    @if (event.status !== 'OVER' && event.status !== 'CANCELLED') {
+                        <button type="button" class="cancel-event-button" [disabled]="savingEvent()"
+                            (click)="cancelEvent(manageEventDialog, confirmationDialog)">
+                            Annuler l’événement
+                        </button>
+                    }
+                </div>
+            </form>
+        }
+    </dialog>
+
+    <dialog #confirmationDialog class="confirmation-dialog" aria-labelledby="confirm-event-heading"
+        (close)="clearConfirmation()">
+        @if (confirmation(); as pending) {
+            <h2 id="confirm-event-heading">Confirmer l’action</h2>
+            <p class="dialog-intro">{{ pending.message }}</p>
+            <div class="dialog-actions">
+                <button type="button" class="cancel-button" (click)="confirmationDialog.close()">Annuler</button>
+                <button type="button" class="cancel-event-button"
+                    (click)="confirmPendingAction(confirmationDialog)">Confirmer</button>
+            </div>
+        }
+    </dialog>
 </main>

@@ -6,12 +6,14 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
+import fr.esgi.event_api.client.AssociationClient;
 import fr.esgi.event_api.dto.response.RegistrationResponse;
 import fr.esgi.event_api.entities.Event;
 import fr.esgi.event_api.entities.Registration;
 import fr.esgi.event_api.enums.EventStatus;
 import fr.esgi.event_api.enums.RegistrationStatus;
 import fr.esgi.event_api.exceptions.EventPassedException;
+import fr.esgi.event_api.exceptions.ForbiddenException;
 import fr.esgi.event_api.exceptions.ResourceNotFound;
 import fr.esgi.event_api.exceptions.AlreadyRegisteredException;
 import fr.esgi.event_api.exceptions.EventNotAvailableException;
@@ -24,9 +26,13 @@ public class RegistrationService {
     
     private final EventService eventService;
     private final RegistrationRepository registrationRepository;
+    private final AssociationClient associationClient;
 
-    public RegistrationResponse registerToEvent(Long userId, Long eventId) {
+    public RegistrationResponse registerToEvent(Long userId, Long eventId, String authorization) {
         Event event = eventService.find(eventId);
+        if (associationClient.canManageEvent(event.getAssociationId(), authorization)) {
+            throw new ForbiddenException("Le président de l'association ne peut pas s'inscrire à son événement.");
+        }
 
         EventStatus status = event.getStatus();
         if (status == EventStatus.CANCELLED || status == EventStatus.DRAFT)
@@ -52,27 +58,38 @@ public class RegistrationService {
 
     public RegistrationResponse cancelRegistration(Long userId, Long eventId, Long registrationId) {
         Registration registration = find(registrationId);
+        if (!registration.getUserId().equals(userId) || !registration.getEventId().equals(eventId)) {
+            throw new ForbiddenException("Vous ne pouvez annuler que votre propre inscription.");
+        }
+
         RegistrationStatus oldStatus = registration.getStatus();
         registration.setStatus(RegistrationStatus.CANCELLED);
+        Registration cancelled = registrationRepository.save(registration);
 
-        // Si la personne qui se désinscrit était confirmée, alors le premier de la liste d'attente passe confirmé.
-        if (oldStatus != RegistrationStatus.CONFIRMED)
-            return toResponse(registrationRepository.save(registration));
-        else {
+        if (oldStatus == RegistrationStatus.CONFIRMED) {
             Optional<Registration> optFirstPending =
                 registrationRepository.findFirstByEventIdAndStatusOrderByRegistrationDateAsc(eventId, RegistrationStatus.PENDING);
 
-            // Le premier de la liste, s'il existe, devient confirmé et l'événement reste complet
             if (optFirstPending.isPresent()) {
                 Registration firstPending = optFirstPending.get();
                 firstPending.setStatus(RegistrationStatus.CONFIRMED);
-                return toResponse(registrationRepository.save(firstPending));
+                registrationRepository.save(firstPending);
+            } else {
+                eventService.changeEventStatus(eventId, EventStatus.POSTED);
             }
-
-            // Sinon l'événement repasse en status POSTED
-            eventService.changeEventStatus(eventId, EventStatus.POSTED);
-            return toResponse(registrationRepository.save(registration));
         }
+
+        return toResponse(cancelled);
+    }
+
+    public Optional<RegistrationResponse> getMyRegistration(Long userId, Long eventId) {
+        eventService.find(eventId);
+        List<RegistrationStatus> activeStatuses = List.of(
+                RegistrationStatus.CONFIRMED,
+                RegistrationStatus.PENDING);
+        return registrationRepository
+                .findFirstByUserIdAndEventIdAndStatusIn(userId, eventId, activeStatuses)
+                .map(this::toResponse);
     }
 
     public List<RegistrationResponse> retrieveRegistrationsOf(Long eventId) {

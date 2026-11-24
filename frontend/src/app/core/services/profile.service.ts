@@ -2,8 +2,8 @@ import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { ApiService } from "./api.service";
 import { Observable, Subject, tap } from "rxjs";
-import { ProfileResponse } from "../../dto/profile/profile-response.dto";
-import { ProfileUpdateRequest } from "../../dto/profile/profile-update-request.dto";
+import { ProfileResponse } from "../../dto/user/profile/profile-response.dto";
+import { ProfileUpdateRequest } from "../../dto/user/profile/profile-update-request.dto";
 
 @Injectable({
     providedIn: 'root'

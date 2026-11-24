@@ -1,4 +1,4 @@
-import { MemberRole } from "../../models/membership.model";
+import { MemberRole } from "../../enums/associations/membership-role.type";
 
 export interface ChangeMemberRoleRequest {
     role: MemberRole;

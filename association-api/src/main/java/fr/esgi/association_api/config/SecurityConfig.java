@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -19,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 
 @Configuration 
 @EnableWebSecurity 
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
     
@@ -36,6 +38,8 @@ public class SecurityConfig {
                     .requestMatchers("/actuator/health").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/associations/*/members")
                         .hasAnyRole("ADMIN_ASSOCIATION", "ADMIN_CAMPUS")
+                    .requestMatchers(HttpMethod.DELETE, "/api/associations/*/members/leave")
+                        .authenticated()
                     .requestMatchers(HttpMethod.DELETE, "/api/associations/*/members/*")
                         .hasAnyRole("ADMIN_ASSOCIATION", "ADMIN_CAMPUS")
                     .requestMatchers(HttpMethod.PATCH, "/api/associations/*/members/*/role")

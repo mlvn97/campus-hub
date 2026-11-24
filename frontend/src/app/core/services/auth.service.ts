@@ -22,12 +22,15 @@ export class AuthService {
         )
         .pipe(tap(response => {
             localStorage.setItem('token', response.token);
+            localStorage.setItem('role', response.user.role);
+            console.log("rôle: " + response.user.role);
             this.sessionChanges.next();
         }));
     }
 
     logout(): void {
         localStorage.removeItem('token');
+        localStorage.removeItem('role');
         this.sessionChanges.next();
     }
 
@@ -35,7 +38,19 @@ export class AuthService {
         return localStorage.getItem('token');
     }
 
+    getRole(): string | null {
+        return localStorage.getItem('role');
+    }
+
     isAuthenticated(): boolean {
         return !!this.getToken();
+    }
+
+    adminCampus(): boolean {
+        return this.getRole() === "ADMIN_CAMPUS";
+    }
+
+    adminAssociations(): boolean {
+        return this.getRole() === "ADMIN_ASSOCIATION";
     }
 }

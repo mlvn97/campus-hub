@@ -35,22 +35,37 @@ public class MembershipController {
         return ResponseEntity.ok(membershipService.getMembers(associationId));
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<MembershipResponse> getMyMembership(
+            @PathVariable Long associationId,
+            @AuthenticationPrincipal Long userId) {
+        return membershipService.getMyMembership(associationId, userId)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.noContent().build());
+    }
+
     @PostMapping
     public ResponseEntity<MembershipResponse> addMember(
             @PathVariable Long associationId,
             @Valid @RequestBody AddMemberRequest request) {
-        MembershipResponse membership = membershipService.addMember(associationId, request);
-        return ResponseEntity.created(URI.create(
-                "/api/associations/" + associationId + "/members/" + membership.getUserId()))
-                .body(membership);
+        MembershipResponse response = membershipService.addMember(associationId, request);
+        return ResponseEntity.created(URI.create("/api/associations/" + associationId + "/members/" + response.getId())).build();
+    }
+
+    @DeleteMapping("/leave")
+    public ResponseEntity<Void> leave(
+            @PathVariable Long associationId,
+            @AuthenticationPrincipal Long userId,
+            @RequestParam(required = false) Long successorId) {
+        membershipService.leave(associationId, userId, successorId);
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{userId}")
     public ResponseEntity<Void> removeMember(
             @PathVariable Long associationId,
-            @PathVariable Long userId,
-            @RequestParam(required = false) Long successorUserId) {
-        membershipService.removeMember(associationId, userId, successorUserId);
+            @PathVariable Long userId) {
+        membershipService.removeMember(associationId, userId);
         return ResponseEntity.noContent().build();
     }
 
@@ -59,11 +74,11 @@ public class MembershipController {
             @PathVariable Long associationId,
             @PathVariable Long userId,
             @Valid @RequestBody ChangeMemberRoleRequest request) {
-        return ResponseEntity.ok(membershipService.changeMemberRole(associationId, userId, request));
+        return ResponseEntity.ok(membershipService.changeMemberRole(associationId, userId, request.getRole()));
     }
 
-    @GetMapping ("/can-manage")
-    public boolean canManageAssociation(@PathVariable Long associationId, @AuthenticationPrincipal  Long userId) {
+    @GetMapping ("/is-president")
+    public boolean isPresident(@PathVariable Long associationId, @AuthenticationPrincipal Long userId) {
         return membershipService.isPresidentOf(associationId, userId);
     }
 }

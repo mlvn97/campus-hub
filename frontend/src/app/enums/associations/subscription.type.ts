@@ -1,0 +1,1 @@
+export type SubscriptionStatus = 'PENDING' | 'APPROVED' | 'REJECTED';

@@ -8,7 +8,7 @@ import { map, switchMap } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { ProfileService } from '../../core/services/profile.service';
 import { UserService } from '../../core/services/user.service';
-import { ProfileResponse, StudentGender } from '../../dto/profile/profile-response.dto';
+import { ProfileResponse, StudentGender } from '../../dto/user/profile/profile-response.dto';
 import { UserResponse } from '../../dto/user/register-response.dto';
 
 @Component({

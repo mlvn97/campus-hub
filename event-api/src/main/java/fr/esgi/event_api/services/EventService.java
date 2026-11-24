@@ -13,6 +13,7 @@ import fr.esgi.event_api.dto.response.EventResponse;
 import fr.esgi.event_api.entities.Event;
 import fr.esgi.event_api.enums.EventStatus;
 import fr.esgi.event_api.exceptions.ForbiddenException;
+import fr.esgi.event_api.exceptions.EventNotEditableException;
 import fr.esgi.event_api.exceptions.InvalidStatusException;
 import fr.esgi.event_api.exceptions.ResourceNotFound;
 import fr.esgi.event_api.repositories.EventRepository;
@@ -38,8 +39,18 @@ public class EventService {
 
     public EventResponse update(UpdateEventRequest request, Long eventId, String authorization) {
         Event event = find(eventId);
+        if (event.getStatus() != EventStatus.DRAFT) {
+            throw new EventNotEditableException();
+        }
         assertCanManageEvent(event, authorization);
+
+        if (request.getAssociationId() != null
+                && !request.getAssociationId().equals(event.getAssociationId())
+                && !associationClient.canManageEvent(request.getAssociationId(), authorization)) {
+            throw new ForbiddenException("Vous devez être président de l'association de destination.");
+        }
         
+        if (request.getAssociationId() != null) event.setAssociationId(request.getAssociationId());
         if (request.getTitle() != null) event.setTitle(request.getTitle());
         if (request.getDescription() != null) event.setDescription(request.getDescription());
         if (request.getDate() != null) event.setDate(request.getDate());

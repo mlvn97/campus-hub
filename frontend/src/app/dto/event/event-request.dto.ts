@@ -5,4 +5,4 @@ export type EventRequest = Omit<Event, 'id' | 'description'> & {
 };
 
 export type UpdateEventRequest = Pick<EventRequest, 'location'> &
-    Partial<Omit<EventRequest, 'associationId' | 'status' | 'location'>>;
+    Partial<Omit<EventRequest, 'status' | 'location'>>;

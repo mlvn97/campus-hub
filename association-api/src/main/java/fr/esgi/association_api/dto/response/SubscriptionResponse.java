@@ -1,16 +1,16 @@
 package fr.esgi.association_api.dto.response;
 
-import fr.esgi.association_api.enums.MembershipApplicationStatus;
+import fr.esgi.association_api.enums.SubscriptionStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class MembershipApplicationResponse {
+public class SubscriptionResponse {
 
     private Long id;
     private Long userId;
     private Long associationId;
     private String motivation;
-    private MembershipApplicationStatus status;
+    private SubscriptionStatus status;
 }

@@ -9,9 +9,9 @@ import { HomepageComponent } from './pages/homepage/homepage.component';
 export const routes: Routes = [
     { path: '', component: HomepageComponent },
     { path: 'auth', component: AuthComponent },
-    { path: 'compte', component: AccountComponent },
+    { path: 'account', component: AccountComponent },
     { path: 'associations', component: DirectoryComponent },
-    { path: 'evenements', component: EventsComponent },
-    { path: 'actualites', component: NewsComponent },
+    { path: 'events', component: EventsComponent },
+    { path: 'news', component: NewsComponent },
     { path: '**', redirectTo: '' }
 ];

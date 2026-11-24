@@ -1,13 +1,24 @@
 <main>
-    <header>
-        <h1>Actualités</h1>
-        <p>Suis la vie du campus et les annonces des associations.</p>
-    </header>
+    <div class="page-heading">
+        <header>
+            <span class="eyebrow">CAMPUS HUB</span>
+            <h1>Actualités</h1>
+            <p>Suis la vie du campus et les annonces des associations.</p>
+        </header>
+        @if (canManageNews()) {
+            <button class="create-button" type="button" (click)="openCreateDialog(newsDialog)">
+                <i class="bi bi-plus-lg" aria-hidden="true"></i> Créer une actualité
+            </button>
+        }
+    </div>
+
     <form class="filters" (ngSubmit)="applyFilters()">
         <label>Catégorie
             <input name="category" list="news-categories" placeholder="Toutes les catégories" maxlength="80" [(ngModel)]="category">
             <datalist id="news-categories">
-                @for (option of categories(); track option) { <option [value]="option"></option> }
+                @for (option of categories(); track option) {
+                    <option [value]="option"></option>
+                }
             </datalist>
         </label>
         <label>Association
@@ -18,55 +29,221 @@
                 }
             </select>
         </label>
-        <button class="filter" type="submit" [disabled]="loading()">Filtrer</button>
+        <button class="filter-button" type="submit" [disabled]="loading()">Filtrer</button>
     </form>
 
+    @if (newsMessage()) {
+        <p class="success-message" role="status">{{ newsMessage() }}</p>
+    }
+    @if (newsError()) {
+        <p class="action-error" role="alert">{{ newsError() }}</p>
+    }
+
     @if (loading()) {
-        <p role="status">Chargement…</p>
+        <p class="page-message" role="status">Chargement des actualités…</p>
     } @else if (error() === 401 || error() === 403) {
-        <p role="alert">Connecte-toi pour consulter les actualités. <a routerLink="/auth">Se connecter</a></p>
+        <p class="page-message" role="alert">Connecte-toi pour consulter les actualités. <a routerLink="/auth">Se connecter</a></p>
     } @else if (error() !== null) {
-        <p role="alert">Impossible de charger les actualités. <button (click)="load(page())">Réessayer</button></p>
+        <p class="page-message" role="alert">Impossible de charger les actualités. <button type="button" (click)="load(page())">Réessayer</button></p>
     } @else {
         @if (preview()) {
             <p class="notice" role="status">Aperçu avec des exemples. L’API Actualités est inaccessible.</p>
         } @else if (associationError()) {
-            <p role="status">La liste des associations est indisponible.</p>
+            <p class="notice" role="status">La liste des associations est indisponible.</p>
         }
-        <div class="cards">
-            @for (item of items(); track item.id; let first = $first, index = $index) {
-                @if (index === 1) { <h2 class="latest">Dernières actualités</h2> }
-                <article [class.feature]="first">
-                    <div class="photo" [class.forum]="first" [class.sport]="index === 1" aria-hidden="true"></div>
-                    <div class="copy">
-                        <div class="meta">
-                            @if (!first && item.publishedAt; as date) {
-                                <time [attr.datetime]="date">{{ shortDate(date) }}</time><span aria-hidden="true"> · </span>
+        <div class="news-list">
+            @for (item of items(); track item.id) {
+                <article class="news-row">
+                    <div class="news-icon" aria-hidden="true">
+                        <i class="bi bi-newspaper"></i>
+                    </div>
+                    <div class="news-copy">
+                        <div class="news-meta">
+                            <span class="category">{{ item.category }}</span>
+                            @if (item.publishedAt; as date) {
+                                <time [attr.datetime]="date">{{ shortDate(date) }}</time>
                             }
-                            <span>{{ item.category }}</span>
                         </div>
                         <h2>{{ item.title }}</h2>
                         <p class="excerpt">{{ item.content }}</p>
-                        <button class="read" (click)="read(item, articleDialog)">Lire l’actualité <span aria-hidden="true">→</span></button>
+                        <button class="read-button" type="button" (click)="read(item, articleDialog)">
+                            Lire l’actualité <span aria-hidden="true">→</span>
+                        </button>
                     </div>
                 </article>
             } @empty {
-                <p>Aucune actualité ne correspond aux filtres.</p>
+                <div class="empty-state">Aucune actualité ne correspond aux filtres.</div>
             }
         </div>
         @if (totalPages() > 1) {
-            <nav class="pagination" aria-label="Pagination des actualités">
-                <button [disabled]="page() === 1" (click)="load(page() - 1)">Précédent</button>
+            <nav aria-label="Pagination des actualités">
+                <button type="button" [disabled]="page() === 1" (click)="load(page() - 1)">Précédent</button>
                 <span aria-current="page">{{ page() }} / {{ totalPages() }}</span>
-                <button [disabled]="page() >= totalPages()" (click)="load(page() + 1)">Suivant</button>
+                <button type="button" [disabled]="page() >= totalPages()" (click)="load(page() + 1)">Suivant</button>
             </nav>
         }
     }
+
+    @if (canManageNews()) {
+        <section class="management-section" aria-labelledby="management-heading">
+            <div class="section-heading">
+                <div>
+                    <span class="eyebrow">ESPACE DE GESTION</span>
+                    <h2 id="management-heading">Actualités à gérer</h2>
+                </div>
+            </div>
+            @if (presidentLookupError()) {
+                <p class="notice" role="status">Impossible de vérifier les associations dont tu es président.</p>
+            }
+            @if (managementLoading()) {
+                <p class="page-message" role="status">Chargement des actualités à gérer…</p>
+            } @else if (managementError()) {
+                <p class="page-message" role="alert">{{ managementError() }}
+                    <button type="button" (click)="loadManagement(managementPage())">Réessayer</button>
+                </p>
+            } @else {
+                <div class="news-list">
+                    @for (item of managementItems(); track item.id) {
+                        <article class="news-row management-row">
+                            <div class="news-icon" aria-hidden="true">
+                                <i class="bi bi-newspaper"></i>
+                            </div>
+                            <div class="news-copy">
+                                <div class="news-meta">
+                                    <span class="category">{{ item.category }}</span>
+                                    <span [class]="'status ' + item.status.toLowerCase()">{{ statusLabel(item.status) }}</span>
+                                    @if (item.publishedAt; as date) {
+                                        <time [attr.datetime]="date">{{ shortDate(date) }}</time>
+                                    }
+                                </div>
+                                <h3>{{ item.title }}</h3>
+                                <p class="excerpt">{{ item.content }}</p>
+                                <div class="management-actions">
+                                    <button type="button" class="manage-button" (click)="openEditDialog(item, newsDialog)">
+                                        {{ item.status === 'BROUILLON' ? 'Modifier le brouillon' : 'Gérer' }}
+                                    </button>
+                                    @if (item.status === 'PUBLIEE') {
+                                        <button type="button" class="archive-button"
+                                            (click)="requestNewsConfirmation(item, 'archive', newsConfirmDialog)">
+                                            Archiver
+                                        </button>
+                                    }
+                                    <button type="button" class="delete-button"
+                                        (click)="requestNewsConfirmation(item, 'delete', newsConfirmDialog)">
+                                        Supprimer
+                                    </button>
+                                </div>
+                            </div>
+                        </article>
+                    } @empty {
+                        <div class="empty-state">Aucune actualité à gérer pour le moment.</div>
+                    }
+                </div>
+                @if (managementTotalPages() > 1) {
+                    <nav aria-label="Pagination des actualités à gérer">
+                        <button type="button" [disabled]="managementPage() === 1"
+                            (click)="loadManagement(managementPage() - 1)">Précédent</button>
+                        <span aria-current="page">{{ managementPage() }} / {{ managementTotalPages() }}</span>
+                        <button type="button" [disabled]="managementPage() >= managementTotalPages()"
+                            (click)="loadManagement(managementPage() + 1)">Suivant</button>
+                    </nav>
+                }
+            }
+        </section>
+    }
+
     <dialog #articleDialog aria-labelledby="article-title">
         @if (selected(); as item) {
+            <span class="eyebrow">{{ item.category }}</span>
             <h2 id="article-title">{{ item.title }}</h2>
+            @if (item.publishedAt; as date) {
+                <time [attr.datetime]="date">{{ shortDate(date) }}</time>
+            }
             <p class="full-text">{{ item.content }}</p>
         }
-        <form method="dialog"><button autofocus>Fermer</button></form>
+        <form method="dialog">
+            <button type="submit">Fermer</button>
+        </form>
+    </dialog>
+
+    <dialog #newsDialog class="news-management-dialog" aria-labelledby="news-dialog-heading">
+        <h2 id="news-dialog-heading">
+            @if (editing(); as item) {
+                {{ item.status === 'BROUILLON' ? 'Modifier le brouillon' : 'Gérer l’actualité' }}
+            } @else {
+                Créer une actualité
+            }
+        </h2>
+        @if (editing() && editing()?.status !== 'BROUILLON') {
+            <p class="dialog-intro">Seuls les brouillons peuvent être modifiés. Les informations sont en lecture seule.</p>
+        } @else if (!editing()) {
+            <p class="dialog-intro">L’actualité sera créée en brouillon.</p>
+        }
+        <form #newsForm="ngForm">
+            <label>Association
+                <select name="associationId" [required]="!campusAdmin()" [(ngModel)]="newsDraft.associationId"
+                    [disabled]="savingNews() || (!!editing() && editing()?.status !== 'BROUILLON')">
+                    @if (campusAdmin()) {
+                        <option [ngValue]="null">Actualité du campus</option>
+                        @for (association of associationsList(); track association.id) {
+                            <option [ngValue]="association.id">{{ association.name }}</option>
+                        }
+                    } @else {
+                        <option [ngValue]="null">Choisir une association</option>
+                        @for (association of presidentAssociations(); track association.id) {
+                            <option [ngValue]="association.id">{{ association.name }}</option>
+                        }
+                    }
+                </select>
+            </label>
+            <label>Titre
+                <input name="title" required minlength="2" maxlength="200" [(ngModel)]="newsDraft.title"
+                    [disabled]="savingNews() || (!!editing() && editing()?.status !== 'BROUILLON')">
+            </label>
+            <label>Catégorie
+                <input name="newsCategory" required maxlength="80" [(ngModel)]="newsDraft.category"
+                    [disabled]="savingNews() || (!!editing() && editing()?.status !== 'BROUILLON')">
+            </label>
+            <label>Contenu
+                <textarea name="content" required maxlength="50000" [(ngModel)]="newsDraft.content"
+                    [disabled]="savingNews() || (!!editing() && editing()?.status !== 'BROUILLON')"></textarea>
+            </label>
+            @if (editing(); as item) {
+                <p class="readonly-status">Statut : {{ item.status }}</p>
+            }
+            <div class="dialog-actions">
+                <button type="button" class="cancel-button" [disabled]="savingNews()"
+                    (click)="newsDialog.close()">Annuler les modifications</button>
+                @if (!editing() || editing()?.status === 'BROUILLON') {
+                    <button type="button" class="draft-button" [disabled]="savingNews() || newsForm.invalid"
+                        (click)="saveNews(newsForm, newsDialog, false)">
+                        Garder en brouillon
+                    </button>
+                    <button type="button" class="publish-button" [disabled]="savingNews() || newsForm.invalid"
+                        (click)="saveNews(newsForm, newsDialog, true)">
+                        Publier
+                    </button>
+                }
+            </div>
+        </form>
+    </dialog>
+
+    <dialog #newsConfirmDialog class="confirmation-dialog" aria-labelledby="news-confirm-heading"
+        (close)="clearConfirmation()">
+        @if (confirmation(); as pending) {
+            <h2 id="news-confirm-heading">Confirmer l’action</h2>
+            <p class="dialog-intro">{{ pending.message }}</p>
+            @if (newsError()) {
+                <p class="form-error" role="alert">{{ newsError() }}</p>
+            }
+            <div class="dialog-actions">
+                <button type="button" class="cancel-button" [disabled]="savingNews()"
+                    (click)="newsConfirmDialog.close()">Annuler</button>
+                <button type="button" class="delete-button" [disabled]="savingNews()"
+                    (click)="confirmNewsAction(newsConfirmDialog)">
+                    {{ savingNews() ? 'Traitement…' : 'Confirmer' }}
+                </button>
+            </div>
+        }
     </dialog>
 </main>

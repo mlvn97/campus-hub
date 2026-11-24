@@ -17,7 +17,7 @@ public class AssociationClient {
 
     public boolean canManageEvent(Long associationId, String authorization) {
         return restClient.get()
-            .uri("/api/associations/{associationId}/members/can-manage", associationId)
+            .uri("/api/associations/{associationId}/members/is-president", associationId)
             .header(HttpHeaders.AUTHORIZATION, authorization)
             .retrieve()
             .body(Boolean.class);

@@ -2,107 +2,90 @@ package fr.esgi.association_api.services;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import fr.esgi.association_api.dto.request.AddMemberRequest;
-import fr.esgi.association_api.dto.request.ChangeMemberRoleRequest;
 import fr.esgi.association_api.dto.response.MembershipResponse;
 import fr.esgi.association_api.entities.Membership;
 import fr.esgi.association_api.enums.MemberRole;
 import fr.esgi.association_api.exceptions.AlreadyPresidentException;
-import fr.esgi.association_api.exceptions.AssociationNotFoundException;
-import fr.esgi.association_api.exceptions.ForbiddenException;
 import fr.esgi.association_api.exceptions.InvalidSuccessorException;
-import fr.esgi.association_api.exceptions.MembershipAlreadyExistsException;
 import fr.esgi.association_api.exceptions.MembershipNotFoundException;
 import fr.esgi.association_api.exceptions.AlreadyHasPresidentException;
 import fr.esgi.association_api.exceptions.PresidentRequiredException;
-import fr.esgi.association_api.repositories.AssociationRepository;
 import fr.esgi.association_api.repositories.MembershipRepository;
+import jakarta.annotation.Nullable;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class MembershipService {
 
-    private final AssociationRepository associationRepository;
+    private final AssociationService associationService;
     private final MembershipRepository membershipRepository;
 
-    @Transactional(readOnly = true)
     public List<MembershipResponse> getMembers(Long associationId) {
-        requireAssociation(associationId);
+        associationService.assertAssociationExists(associationId);
         return membershipRepository.findByAssociationIdOrderByJoinedAtAsc(associationId)
                 .stream()
                 .map(this::toResponse)
                 .toList();
     }
 
-    @Transactional
-    public MembershipResponse addMember(Long associationId, AddMemberRequest request) {
-        requireAssociation(associationId);
-        if (membershipRepository.existsByAssociationIdAndUserId(associationId, request.getUserId())) {
-            throw new MembershipAlreadyExistsException(associationId, request.getUserId());
-        }
-        if (request.getRole() == MemberRole.PRESIDENT) {
-            if (membershipRepository.existsByUserIdAndRole(request.getUserId(), MemberRole.PRESIDENT)) {
-                throw new AlreadyPresidentException(request.getUserId());
-            }
-            if (membershipRepository.existsByAssociationIdAndRole(associationId, MemberRole.PRESIDENT)) {
-                throw new AlreadyHasPresidentException(associationId);
-            }
-        }
-
-        Membership membership = new Membership(
-                null,
-                request.getUserId(),
-                associationId,
-                request.getRole(),
-                LocalDateTime.now()
-        );
-        return toResponse(membershipRepository.save(membership));
+    public Optional<MembershipResponse> getMyMembership(Long associationId, Long userId) {
+        associationService.assertAssociationExists(associationId);
+        return membershipRepository.findByAssociationIdAndUserId(associationId, userId)
+                .map(this::toResponse);
     }
 
-    @Transactional
-    public void removeMember(Long associationId, Long userId, Long successorUserId) {
+    public void leave(Long associationId, Long userId, @Nullable Long successorId) {
         Membership membership = findMember(associationId, userId);
         if (membership.getRole() == MemberRole.PRESIDENT) {
-            if (successorUserId == null) {
-                throw new PresidentRequiredException();
-            }
-            if (successorUserId.equals(userId)) {
-                throw new InvalidSuccessorException();
-            }
+            if (successorId == null) throw new PresidentRequiredException();
+            if (successorId.equals(userId)) throw new InvalidSuccessorException();
 
-            Membership successor = findMember(associationId, successorUserId);
-            if (membershipRepository.existsByUserIdAndRole(successorUserId, MemberRole.PRESIDENT)) {
-                throw new AlreadyPresidentException(successorUserId);
-            }
+            Membership successor = findMember(associationId, successorId);
+            if (membershipRepository.existsByUserIdAndRole(successorId, MemberRole.PRESIDENT))
+                throw new AlreadyPresidentException(successorId);
+
             successor.setRole(MemberRole.PRESIDENT);
             membershipRepository.save(successor);
         }
         membershipRepository.delete(membership);
     }
 
-    @Transactional
-    public MembershipResponse changeMemberRole(
-            Long associationId,
-            Long userId,
-            ChangeMemberRoleRequest request) {
+    public void removeMember(Long associationId, Long userId) {
         Membership membership = findMember(associationId, userId);
-        if (membership.getRole() == MemberRole.PRESIDENT && request.getRole() != MemberRole.PRESIDENT) {
-            throw new PresidentRequiredException();
-        }
-        if (membership.getRole() != MemberRole.PRESIDENT && request.getRole() == MemberRole.PRESIDENT) {
-            if (membershipRepository.existsByUserIdAndRole(userId, MemberRole.PRESIDENT)) {
-                throw new AlreadyPresidentException(userId);
-            }
-            if (membershipRepository.existsByAssociationIdAndRole(associationId, MemberRole.PRESIDENT)) {
+        membershipRepository.delete(membership);
+    }
+
+    public MembershipResponse addMember(Long associationId, AddMemberRequest request) {
+        if (request.getRole() == MemberRole.PRESIDENT) {
+            if (membershipRepository.existsByUserIdAndRole(request.getUserId(), MemberRole.PRESIDENT))
+                throw new AlreadyPresidentException(request.getUserId());
+            if (membershipRepository.existsByAssociationIdAndRole(associationId, MemberRole.PRESIDENT))
                 throw new AlreadyHasPresidentException(associationId);
-            }
         }
-        membership.setRole(request.getRole());
+        Membership membership = new Membership(null, request.getUserId(), associationId, request.getRole(), LocalDateTime.now());
+        return toResponse(membership);
+    }
+
+    public MembershipResponse changeMemberRole(Long associationId, Long userId, @NotNull MemberRole role ) {
+        Membership membership = findMember(associationId, userId);
+
+        if (membership.getRole() == MemberRole.PRESIDENT && role != MemberRole.PRESIDENT)
+            throw new PresidentRequiredException();
+
+        if (membership.getRole() != MemberRole.PRESIDENT && role == MemberRole.PRESIDENT) {
+            if (membershipRepository.existsByUserIdAndRole(userId, MemberRole.PRESIDENT))
+                throw new AlreadyPresidentException(userId);
+            if (membershipRepository.existsByAssociationIdAndRole(associationId, MemberRole.PRESIDENT))
+                throw new AlreadyHasPresidentException(associationId);
+        }
+        membership.setRole(role);
         return toResponse(membershipRepository.save(membership));
     }
 
@@ -110,14 +93,13 @@ public class MembershipService {
         return membershipRepository.existsByAssociationIdAndUserIdAndRole(associationId, userId, MemberRole.PRESIDENT);
     }
 
-    private void requireAssociation(Long associationId) {
-        if (!associationRepository.existsById(associationId)) {
-            throw new AssociationNotFoundException(associationId);
-        }
+    protected void createMembershipFor(Long associationId, Long userId) {
+        Membership membership = new Membership(null, userId, associationId, MemberRole.MEMBER, LocalDateTime.now());
+        membershipRepository.save(membership);
     }
 
     private Membership findMember(Long associationId, Long userId) {
-        requireAssociation(associationId);
+        associationService.assertAssociationExists(associationId);
         return membershipRepository.findByAssociationIdAndUserId(associationId, userId)
                 .orElseThrow(() -> new MembershipNotFoundException(associationId, userId));
     }

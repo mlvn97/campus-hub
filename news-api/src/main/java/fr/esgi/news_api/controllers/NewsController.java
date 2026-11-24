@@ -33,7 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/actualites")
+@RequestMapping("/api/news")
 @Tag(name = "Actualités")
 @SecurityRequirement(name = "bearerAuth")
 public class NewsController {
@@ -47,6 +47,15 @@ public class NewsController {
             @RequestParam(name = "categorie", required = false) @Size(min = 1, max = 80) String category,
             @RequestParam(name = "association", required = false) @Positive Long associationId) {
         return service.feed(page, limit, category, associationId);
+    }
+
+    @GetMapping("/gestion")
+    @Operation(summary = "Consulter les actualités que l'utilisateur peut gérer")
+    public NewsFeedResponse managedFeed(
+            @RequestParam(defaultValue = "1") @Positive int page,
+            @RequestParam(defaultValue = "20") @Positive @Max(100) int limit,
+            Authentication actor) {
+        return service.managedFeed(page, limit, actor);
     }
 
     @GetMapping("/{id}")

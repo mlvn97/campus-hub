@@ -11,13 +11,15 @@ class NewsAccess {
     private final AssociationClient associations;
 
     boolean canManage(Authentication actor, Long associationId, String authorization) {
-        var authorities = actor.getAuthorities();
-        if (authorities.stream().anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN_CAMPUS"))) {
+        if (isCampusAdmin(actor)) {
             return true;
         }
-        return associationId != null && authorities.stream()
-                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN_ASSOCIATION"))
-                && associations.canManageNews(associationId, authorization);
+        return associationId != null && associations.isPresident(associationId, authorization);
+    }
+
+    boolean isCampusAdmin(Authentication actor) {
+        return actor.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN_CAMPUS"));
     }
 
     boolean associationExists(long associationId, String authorization) {
