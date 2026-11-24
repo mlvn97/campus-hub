@@ -1,7 +1,8 @@
 package fr.esgi.news_api.services;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Objects;
 
 import fr.esgi.news_api.dto.CreateNewsRequest;
 import fr.esgi.news_api.dto.NewsFeedResponse;
@@ -49,9 +50,26 @@ public class NewsService {
                 page, limit, result.getTotalElements(), result.getTotalPages());
     }
 
+    public NewsFeedResponse managedFeed(int page, int limit, Authentication actor) {
+        if ((page - 1L) * limit > Integer.MAX_VALUE) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Page trop éloignée");
+        }
+        Specification<News> filters = (root, query, builder) -> {
+            if (access.isCampusAdmin(actor)) {
+                return builder.conjunction();
+            }
+            return builder.equal(root.get("authorUserId"), userId(actor));
+        };
+        var result = repository.findAll(filters, PageRequest.of(page - 1, limit,
+                Sort.by(Sort.Direction.DESC, "publishedAt", "id")));
+        return new NewsFeedResponse(result.map(NewsResponse::from).getContent(),
+                page, limit, result.getTotalElements(), result.getTotalPages());
+    }
+
     public NewsResponse get(long id, Authentication actor, String authorization) {
         News news = repository.findById(id).orElseThrow(NewsService::notFound);
-        if (news.getStatus() != NewsStatus.PUBLIEE && !access.canManage(actor, news.getAssociationId(), authorization)) {
+        if (news.getStatus() != NewsStatus.PUBLIEE
+                && !canManage(actor, news, authorization)) {
             throw notFound();
         }
         return NewsResponse.from(news);
@@ -65,12 +83,13 @@ public class NewsService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Association introuvable");
         }
         return NewsResponse.from(repository.save(
-                new News(request.title(), request.content(), request.category(), associationId)));
+                new News(request.title(), request.content(), request.category(), associationId, userId(actor))));
     }
 
     @Transactional
     public NewsResponse update(long id, UpdateNewsRequest request, Authentication actor, String authorization) {
         News news = managedNews(id, actor, authorization);
+        requireStatus(news, NewsStatus.BROUILLON);
         news.edit(request.title(), request.content(), request.category());
         return NewsResponse.from(news);
     }
@@ -84,7 +103,7 @@ public class NewsService {
     public NewsResponse publish(long id, Authentication actor, String authorization) {
         News news = managedNews(id, actor, authorization);
         requireStatus(news, NewsStatus.BROUILLON);
-        news.publish(Instant.now());
+        news.publish(LocalDateTime.now());
         return NewsResponse.from(news);
     }
 
@@ -98,13 +117,29 @@ public class NewsService {
 
     private News managedNews(long id, Authentication actor, String authorization) {
         News news = repository.findForUpdate(id).orElseThrow(NewsService::notFound);
-        requireManager(actor, news.getAssociationId(), authorization);
+        if (!canManage(actor, news, authorization)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
         return news;
     }
 
     private void requireManager(Authentication actor, Long associationId, String authorization) {
         if (!access.canManage(actor, associationId, authorization)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+    }
+
+    private boolean canManage(Authentication actor, News news, String authorization) {
+        return access.canManage(actor, news.getAssociationId(), authorization)
+                && (access.isCampusAdmin(actor)
+                        || Objects.equals(news.getAuthorUserId(), userId(actor)));
+    }
+
+    private static Long userId(Authentication actor) {
+        try {
+            return Long.valueOf(actor.getName());
+        } catch (NumberFormatException exception) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Identifiant utilisateur invalide", exception);
         }
     }
 

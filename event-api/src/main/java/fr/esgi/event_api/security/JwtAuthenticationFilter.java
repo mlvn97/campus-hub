@@ -36,8 +36,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = header.substring(7);
         try {
             Claims claims = jwtService.validateToken(token);
-            String userId = claims.getSubject();
+            String subject = claims.getSubject();
             String role = claims.get("role", String.class);
+            if (subject == null || role == null) {
+                throw new IllegalArgumentException("Required JWT claims are missing.");
+            }
+            Long userId = Long.valueOf(subject);
 
             var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role));
             var authentication = new UsernamePasswordAuthenticationToken(userId, null, authorities);

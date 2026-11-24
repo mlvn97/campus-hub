@@ -36,8 +36,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @EnabledIfEnvironmentVariable(named = "NEWS_TEST_DB_URL", matches = ".+")
 class NewsApiApplicationTests {
     private static final String BASE = "/api/actualites";
-    private static final String PRESIDENT = token(10, "ADMIN_ASSOCIATION");
-    private static final String OTHER_PRESIDENT = token(20, "ADMIN_ASSOCIATION");
+    private static final String PRESIDENT = token(10, "STUDENT");
+    private static final String OTHER_PRESIDENT = token(20, "STUDENT");
+    private static final String SECOND_PRESIDENT = token(11, "STUDENT");
     private static final String CAMPUS = token(30, "ADMIN_CAMPUS");
     private static final String STUDENT = token(40, "STUDENT");
 
@@ -53,9 +54,10 @@ class NewsApiApplicationTests {
             try (exchange) {
                 String path = exchange.getRequestURI().getPath();
                 String token = exchange.getRequestHeaders().getFirst("Authorization");
-                if (path.endsWith("/members/can-manage")) {
-                    boolean allowed = (path.equals("/api/associations/101/members/can-manage") && PRESIDENT.equals(token))
-                            || (path.equals("/api/associations/202/members/can-manage") && OTHER_PRESIDENT.equals(token));
+                if (path.endsWith("/members/is-president")) {
+                    boolean allowed = (path.equals("/api/associations/101/members/is-president")
+                            && (PRESIDENT.equals(token) || SECOND_PRESIDENT.equals(token)))
+                            || (path.equals("/api/associations/202/members/is-president") && OTHER_PRESIDENT.equals(token));
                     byte[] body = Boolean.toString(allowed).getBytes(StandardCharsets.UTF_8);
                     exchange.getResponseHeaders().set("Content-Type", "application/json");
                     exchange.sendResponseHeaders(200, body.length);
@@ -83,10 +85,17 @@ class NewsApiApplicationTests {
         String news = create(PRESIDENT, "Culture", "101");
         String otherCategory = create(PRESIDENT, "Sport", "101");
         String otherAssociation = create(OTHER_PRESIDENT, "Culture", "202");
+        String otherAuthor = create(SECOND_PRESIDENT, "Culture", "101");
 
         mvc.perform(get(news).header("Authorization", STUDENT)).andExpect(status().isNotFound());
         mvc.perform(get(news).header("Authorization", PRESIDENT))
                 .andExpect(jsonPath("$.status").value("BROUILLON"));
+        mvc.perform(patch(otherAuthor).header("Authorization", PRESIDENT)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"title\":\"Modification interdite\"}"))
+                .andExpect(status().isForbidden());
+        mvc.perform(get(BASE + "/gestion").header("Authorization", PRESIDENT))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[?(@.id == " + otherAuthor.substring(otherAuthor.lastIndexOf('/') + 1) + ")]").doesNotExist());
         mvc.perform(patch(news + "/publier").header("Authorization", OTHER_PRESIDENT))
                 .andExpect(status().isForbidden());
         mvc.perform(patch(news + "/archiver").header("Authorization", PRESIDENT))
@@ -99,6 +108,9 @@ class NewsApiApplicationTests {
         publish(otherCategory, CAMPUS);
         publish(otherAssociation, OTHER_PRESIDENT);
         mvc.perform(patch(news + "/publier").header("Authorization", PRESIDENT))
+                .andExpect(status().isConflict());
+        mvc.perform(patch(news).header("Authorization", PRESIDENT).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"Modification après publication\"}"))
                 .andExpect(status().isConflict());
 
         mvc.perform(get(BASE).header("Authorization", STUDENT).param("page", "2").param("limit", "1")

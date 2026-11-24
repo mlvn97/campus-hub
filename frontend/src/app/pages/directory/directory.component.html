@@ -1,13 +1,24 @@
 <main>
-    <header>
-        <h1>Associations</h1>
-        <p>Découvre les associations qui font vivre ton campus.</p>
-    </header>
-    <form (ngSubmit)="applyFilters()">
+    <div class="page-heading">
+        <header>
+            <span class="eyebrow">CAMPUS HUB</span>
+            <h1>Associations</h1>
+            <p>Découvre les associations qui font vivre ton campus.</p>
+        </header>
+        @if (canCreate()) {
+            <button class="create-button" type="button" (click)="openCreateDialog(createDialog)">
+                <i class="bi bi-plus-lg" aria-hidden="true"></i> Créer une association
+            </button>
+        }
+    </div>
+
+    <form class="filters" (ngSubmit)="applyFilters()">
         <label>Catégorie
             <select name="category" [(ngModel)]="category">
                 <option value="">Toutes les catégories</option>
-                @for (key of categoryKeys; track key) { <option [value]="key">{{ categories[key] }}</option> }
+                @for (key of categoryKeys; track key) {
+                    <option [value]="key">{{ categories[key] }}</option>
+                }
             </select>
         </label>
         <label>Statut
@@ -17,47 +28,278 @@
                 <option value="SUSPENDED">Suspendue</option>
             </select>
         </label>
-        <button class="filter" type="submit" [disabled]="loading()">Filtrer</button>
+        <button class="filter-button" type="submit" [disabled]="loading()">Filtrer</button>
     </form>
 
+    @if (createMessage()) {
+        <p class="success-message" role="status">{{ createMessage() }}</p>
+    }
+    @if (joinMessage(); as message) {
+        <p class="request-message" [class.error]="message.error" [attr.role]="message.error ? 'alert' : 'status'">
+            {{ message.text }}
+        </p>
+    }
+
     @if (loading()) {
-        <p role="status">Chargement…</p>
+        <p class="page-message" role="status">Chargement des associations…</p>
     } @else if (error() === 401 || error() === 403) {
-        <p role="alert">Connecte-toi pour consulter les associations. <a routerLink="/auth">Se connecter</a></p>
+        <p class="page-message" role="alert">Connecte-toi pour consulter les associations. <a routerLink="/auth">Se connecter</a></p>
     } @else if (error() !== null) {
-        <p role="alert">Impossible de charger les associations. <button (click)="load(page())">Réessayer</button></p>
+        <p class="page-message" role="alert">Impossible de charger les associations. <button type="button" (click)="load(page())">Réessayer</button></p>
     } @else {
         @if (preview()) {
             <p class="notice" role="status">Aperçu avec des exemples. L’API Associations est inaccessible.</p>
         }
-        <div class="cards">
+        @if (membershipLookupFailed()) {
+            <p class="notice" role="alert">Impossible de vérifier si tu as rejoint les associations ; les actions sont désactivées.</p>
+        }
+        <div class="association-list">
             @for (item of items(); track item.id) {
-                <article>
-                    <div class="photo" [class.sport]="item.category === 'SPORT'"
-                         [class.tech]="item.category === 'TECH'" [class.humanitarian]="item.category === 'HUMANITARIAN'"
-                         [class.other]="item.category === 'OTHER'" aria-hidden="true"></div>
-                    <div class="copy">
-                        <span class="category">{{ categories[item.category] }}</span>
+                <article class="association-row">
+                    <div class="association-icon" aria-hidden="true">
+                        <i [class]="categoryIcons[item.category]"></i>
+                    </div>
+                    <div class="association-copy">
+                        <div class="association-meta">
+                            <span class="category">{{ categories[item.category] }}</span>
+                            <span class="status" [class.suspended]="item.status === 'SUSPENDED'">
+                                {{ item.status === 'ACTIVE' ? 'Active' : 'Suspendue' }}
+                            </span>
+                        </div>
                         <h2>{{ item.name }}</h2>
-                        <p class="excerpt">{{ item.description || 'Aucune description.' }}</p>
-                        <details>
-                            <summary>Voir l’association <span aria-hidden="true">→</span></summary>
-                            <p>Statut · {{ item.status === 'ACTIVE' ? 'Active' : 'Suspendue' }}</p>
-                            @if (item.description) { <p>{{ item.description }}</p> }
-                        </details>
+                        <p>{{ item.description || 'Aucune description pour le moment.' }}</p>
+                        <div class="association-actions">
+                            @if (!preview() && (membershipsByAssociation()[item.id] || canRequestMembership())) {
+                                <button class="join-button" type="button"
+                                    [disabled]="membershipLookupFailed() || leavingAssociationId() === item.id
+                                        || (item.status === 'SUSPENDED' && !membershipsByAssociation()[item.id])"
+                                    (click)="membershipsByAssociation()[item.id]
+                                        ? leaveAssociation(item, leaveDialog, confirmationDialog)
+                                        : openJoinDialog(item, joinDialog)">
+                                    @if (membershipsByAssociation()[item.id]) {
+                                        <i class="bi bi-box-arrow-right" aria-hidden="true"></i> Quitter
+                                    } @else {
+                                        <i class="bi bi-person-plus" aria-hidden="true"></i>
+                                        Rejoindre
+                                    }
+                                </button>
+                            }
+                            @if (!preview() && canManage()) {
+                                <button class="manage-button" type="button" (click)="openManageDialog(item, manageDialog)">
+                                    <i class="bi bi-gear" aria-hidden="true"></i> Gérer
+                                </button>
+                            }
+                        </div>
                     </div>
                 </article>
             } @empty {
-                <p>Aucune association ne correspond aux filtres.</p>
+                <div class="empty-state">Aucune association ne correspond aux filtres.</div>
             }
         </div>
         @if (totalPages() > 1) {
             <nav aria-label="Pagination des associations">
-                <button [disabled]="page() === 0" (click)="load(page() - 1)">Précédent</button>
-                <span aria-current="page">{{ page() + 1 }}</span>
-                @if (page() + 1 < totalPages()) { <button (click)="load(page() + 1)">{{ page() + 2 }}</button> }
-                <button [disabled]="page() + 1 >= totalPages()" (click)="load(page() + 1)">Suivant</button>
+                <button type="button" [disabled]="page() === 0" (click)="load(page() - 1)">Précédent</button>
+                <span aria-current="page">{{ page() + 1 }} / {{ totalPages() }}</span>
+                <button type="button" [disabled]="page() + 1 >= totalPages()" (click)="load(page() + 1)">Suivant</button>
             </nav>
         }
     }
+
+    <dialog #createDialog aria-labelledby="create-heading">
+        <h2 id="create-heading">Créer une association</h2>
+        <p class="dialog-intro">Ajoute une nouvelle association à la vie du campus.</p>
+        <form #createForm="ngForm" (ngSubmit)="createAssociation(createForm, createDialog)">
+            <label>Nom de l’association
+                <input name="name" required minlength="2" maxlength="50" [(ngModel)]="newAssociation.name">
+            </label>
+            <label>Catégorie
+                <select name="category" required [(ngModel)]="newAssociation.category">
+                    @for (key of categoryKeys; track key) {
+                        <option [value]="key">{{ categories[key] }}</option>
+                    }
+                </select>
+            </label>
+            <label>Description <span class="optional">(facultatif)</span>
+                <textarea name="description" maxlength="300" [(ngModel)]="newAssociation.description"></textarea>
+            </label>
+            @if (createError()) {
+                <p class="form-error" role="alert">{{ createError() }}</p>
+            }
+            <div class="dialog-actions">
+                <button type="button" class="cancel-button" [disabled]="creating()" (click)="createDialog.close()">Annuler</button>
+                <button class="create-button" type="submit" [disabled]="creating() || createForm.invalid">
+                    {{ creating() ? 'Création…' : 'Créer l’association' }}
+                </button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog #joinDialog aria-labelledby="join-heading">
+        <h2 id="join-heading">Rejoindre {{ selectedAssociation()?.name }}</h2>
+        <p class="dialog-intro">Présente ta demande à l’association.</p>
+        <form (ngSubmit)="submitJoinRequest(joinDialog)">
+            <label for="join-motivation">Motivation</label>
+            <textarea id="join-motivation" name="motivation" required maxlength="1000"
+                [(ngModel)]="joinMotivation"></textarea>
+            @if (joinMessage(); as message) {
+                @if (message.error) {
+                    <p class="form-error" role="alert">{{ message.text }}</p>
+                }
+            }
+            <div class="dialog-actions">
+                <button type="button" class="cancel-button" [disabled]="joining()" (click)="joinDialog.close()">Annuler</button>
+                <button class="create-button" type="submit" [disabled]="joining() || !joinMotivation.trim()">
+                    {{ joining() ? 'Envoi…' : 'Envoyer ma demande' }}
+                </button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog #manageDialog class="manage-dialog" aria-labelledby="manage-heading">
+        @if (selectedAssociation(); as association) {
+            <div class="manage-heading">
+                <div>
+                    <span class="eyebrow">GESTION DE L’ASSOCIATION</span>
+                    <h2 id="manage-heading">{{ association.name }}</h2>
+                </div>
+                <button type="button" class="cancel-button" aria-label="Fermer" (click)="manageDialog.close()">Fermer</button>
+            </div>
+            @if (manageMessage()) {
+                <p class="success-message" role="status">{{ manageMessage() }}</p>
+            }
+            @if (manageError()) {
+                <p class="form-error" role="alert">{{ manageError() }}</p>
+            }
+            @if (userNameLookupFailed()) {
+                <p class="notice" role="status">Certains noms sont indisponibles ; leurs identifiants sont affichés à la place.</p>
+            }
+            @if (manageLoading()) {
+                <p role="status">Chargement des membres et des demandes…</p>
+            } @else if (!manageError()) {
+                <section class="manage-section" aria-labelledby="members-heading">
+                    <h3 id="members-heading">Membres ({{ members().length }})</h3>
+                    <ul class="manage-list">
+                        @for (member of members(); track member.id) {
+                            <li class="member-row">
+                                <div class="member-info">
+                                    <strong>{{ userName(member.userId) }} · {{ member.role }}</strong>
+                                    <time [attr.datetime]="member.joinedAt">Depuis le {{ formatJoinedAt(member.joinedAt) }}</time>
+                                </div>
+                                <div class="member-actions">
+                                    <select [name]="'role-' + member.userId" [(ngModel)]="memberRoles[member.userId]"
+                                        [disabled]="managingMemberId() !== null">
+                                        @for (role of memberRoleOptions; track role) {
+                                            <option [value]="role">{{ role }}</option>
+                                        }
+                                    </select>
+                                    <button type="button" class="change-role-button"
+                                        [disabled]="managingMemberId() !== null || memberRoles[member.userId] === member.role"
+                                        (click)="changeMemberRole(member)">
+                                        Changer le rôle
+                                    </button>
+                                    <button type="button" class="exclude-button" [disabled]="managingMemberId() !== null"
+                                        (click)="excludeMember(member, confirmationDialog)">
+                                        Exclure
+                                    </button>
+                                </div>
+                            </li>
+                        } @empty {
+                            <li class="list-empty">Aucun membre pour le moment.</li>
+                        }
+                    </ul>
+                </section>
+                <section class="manage-section" aria-labelledby="applications-heading">
+                    <h3 id="applications-heading">Demandes d’inscription ({{ applications().length }})</h3>
+                    <ul class="manage-list">
+                        @for (application of applications(); track application.id) {
+                            <li class="application-row">
+                                <div>
+                                    <strong>{{ userName(application.userId) }}</strong>
+                                    <p>{{ application.motivation || 'Aucune motivation fournie.' }}</p>
+                                </div>
+                                <div class="application-actions">
+                                    <button type="button" class="accept-button"
+                                        [disabled]="managingSubscriptionId() !== null"
+                                        (click)="manageApplication(application, true)">
+                                        Accepter
+                                    </button>
+                                    <button type="button" class="reject-button"
+                                        [disabled]="managingSubscriptionId() !== null"
+                                        (click)="manageApplication(application, false)">
+                                        Refuser
+                                    </button>
+                                </div>
+                            </li>
+                        } @empty {
+                            <li class="list-empty">Aucune demande en attente.</li>
+                        }
+                    </ul>
+                </section>
+            }
+            <div class="manage-footer">
+                @if (association.status === 'ACTIVE') {
+                    <button type="button" class="suspend-button" [disabled]="suspending()"
+                        (click)="suspendAssociation(confirmationDialog)">
+                        {{ suspending() ? 'Suspension…' : 'Suspendre l’association' }}
+                    </button>
+                } @else {
+                    <button type="button" class="restore-button" [disabled]="reactivating()"
+                        (click)="reactivateAssociation(confirmationDialog)">
+                        {{ reactivating() ? 'Rétablissement…' : 'Rétablir l’association' }}
+                    </button>
+                }
+            </div>
+        }
+    </dialog>
+
+    <dialog #leaveDialog aria-labelledby="leave-heading">
+        @if (leaveAssociationSelection(); as association) {
+            <h2 id="leave-heading">Quitter {{ association.name }}</h2>
+            @if (leaveMembership()?.role === 'PRESIDENT') {
+                <p class="dialog-intro">Choisis le membre qui reprendra la présidence.</p>
+                @if (leaveLoading()) {
+                    <p role="status">Chargement des membres…</p>
+                } @else if (leaveSuccessors().length > 0) {
+                    <label>Successeur
+                        <select name="successor" [(ngModel)]="successorUserId">
+                            <option [ngValue]="null">Choisir un membre</option>
+                            @for (member of leaveSuccessors(); track member.id) {
+                                <option [ngValue]="member.userId">{{ userName(member.userId) }}</option>
+                            }
+                        </select>
+                    </label>
+                }
+            } @else {
+                <p class="dialog-intro">Tu vas quitter cette association.</p>
+            }
+            @if (leaveError()) {
+                <p class="form-error" role="alert">{{ leaveError() }}</p>
+            }
+            <div class="dialog-actions">
+                <button type="button" class="cancel-button" [disabled]="leavingAssociationId() !== null"
+                    (click)="leaveDialog.close()">Annuler</button>
+                <button type="button" class="leave-button"
+                    [disabled]="leaveLoading() || leavingAssociationId() !== null
+                        || (leaveMembership()?.role === 'PRESIDENT'
+                            && (leaveSuccessors().length === 0 || successorUserId === null))"
+                    (click)="confirmLeaveAssociation(leaveDialog)">
+                    {{ leavingAssociationId() ? 'Départ…' : 'Confirmer et quitter' }}
+                </button>
+            </div>
+        }
+    </dialog>
+
+    <dialog #confirmationDialog class="confirmation-dialog" aria-labelledby="confirm-heading"
+        (close)="clearConfirmation()">
+        @if (confirmation(); as pending) {
+            <h2 id="confirm-heading">Confirmer l’action</h2>
+            <p class="dialog-intro">{{ pending.message }}</p>
+            <div class="dialog-actions">
+                <button type="button" class="cancel-button" (click)="confirmationDialog.close()">Annuler</button>
+                <button type="button" class="leave-button" (click)="confirmPendingAction(confirmationDialog)">
+                    Confirmer
+                </button>
+            </div>
+        }
+    </dialog>
 </main>

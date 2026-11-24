@@ -23,10 +23,10 @@ public class AssociationClient {
         this.restClient = RestClient.builder().baseUrl(url).requestFactory(requestFactory).build();
     }
 
-    public boolean canManageNews(long associationId, String authorization) {
+    public boolean isPresident(long associationId, String authorization) {
         try {
             Boolean allowed = restClient.get()
-                    .uri("/api/associations/{id}/members/can-manage", associationId)
+                    .uri("/api/associations/{id}/members/is-president", associationId)
                     .header(HttpHeaders.AUTHORIZATION, authorization)
                     .retrieve().body(Boolean.class);
             return Boolean.TRUE.equals(allowed);

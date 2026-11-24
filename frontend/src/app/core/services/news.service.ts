@@ -31,6 +31,12 @@ export class NewsService {
         });
     }
 
+    fetchManaged({ page, limit }: NewsFilters = {}): Observable<NewsFeedResponse> {
+        return this.http.get<NewsFeedResponse>(`${this.url}/gestion`, {
+            params: queryParams({ page, limit })
+        });
+    }
+
     fetchNews(id: number): Observable<News> {
         return this.http.get<News>(`${this.url}/${id}`);
     }

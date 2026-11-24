@@ -1,10 +1,10 @@
-<nav class="site-nav" aria-label="Navigation principale">
+<!-- nav class="site-nav" aria-label="Navigation principale">
     <a class="brand" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
        ariaCurrentWhenActive="page">Campus <span>Hub</span></a>
-    <a routerLink="/actualites" routerLinkActive="active" ariaCurrentWhenActive="page">Actualités</a>
-    <a routerLink="/evenements" routerLinkActive="active" ariaCurrentWhenActive="page">Événements</a>
+    <a routerLink="/news" routerLinkActive="active" ariaCurrentWhenActive="page">Actualités</a>
+    <a routerLink="/events" routerLinkActive="active" ariaCurrentWhenActive="page">Événements</a>
     <a routerLink="/associations" routerLinkActive="active" ariaCurrentWhenActive="page">Associations</a>
-    <a class="account" routerLink="/compte" routerLinkActive="active" ariaCurrentWhenActive="page">
+    <a class="account" routerLink="/account" routerLinkActive="active" ariaCurrentWhenActive="page">
         @if (account(); as user) {
             @if (user.photo && !photoFailed()) {
                 <img class="account-avatar" [src]="user.photo" alt="" referrerpolicy="no-referrer" (error)="photoFailed.set(true)">
@@ -17,5 +17,22 @@
             Mon compte
         }
     </a>
+</nav>
+<router-outlet /-->
+<nav class="navbar">
+  <a routerLink="/" class="navbar-brand">
+    <span class="brand-icon">C</span>
+    <span>Campus<span class="brand-highlight">Hub</span></span>
+  </a>
+
+  <div class="navbar-links">
+    <a routerLink="/news" routerLinkActive="active">Actualités</a>
+    <a routerLink="/events" routerLinkActive="active">Événements</a>
+    <a routerLink="/associations" routerLinkActive="active">Associations</a>
+    <a routerLink="/account" routerLinkActive="active" class="account-link">
+      <span class="account-icon">👤</span>
+      Compte
+    </a>
+  </div>
 </nav>
 <router-outlet />

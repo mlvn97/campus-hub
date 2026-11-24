@@ -14,6 +14,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor 
 public class UpdateEventRequest {
 
+    private Long associationId;
+
     @Size(min = 2, max = 50, message = "Le titre de l'événement doit contenir entre 2 et 50 caractères.")
     private String title;
 

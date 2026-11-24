@@ -52,6 +52,10 @@ export class EventService {
         return this.http.post<Registration>(`${this.url}/${eventId}/registrations`, null);
     }
 
+    fetchMyRegistration(eventId: number): Observable<Registration | null> {
+        return this.http.get<Registration | null>(`${this.url}/${eventId}/registrations/me`);
+    }
+
     cancelRegistration(eventId: number, registrationId: number): Observable<Registration> {
         return this.http.patch<Registration>(`${this.url}/${eventId}/registrations/${registrationId}`, null);
     }

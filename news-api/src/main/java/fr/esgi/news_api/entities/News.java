@@ -1,6 +1,6 @@
 package fr.esgi.news_api.entities;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -36,18 +36,22 @@ public class News {
     @Column(name = "association_id", updatable = false)
     private Long associationId;
 
+    @Column(name = "author_user_id", updatable = false)
+    private Long authorUserId;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private NewsStatus status = NewsStatus.BROUILLON;
 
     @Column(name = "published_at")
-    private Instant publishedAt;
+    private LocalDateTime publishedAt;
 
-    public News(String title, String content, String category, Long associationId) {
+    public News(String title, String content, String category, Long associationId, Long authorUserId) {
         this.title = title;
         this.content = content;
         this.category = category;
         this.associationId = associationId;
+        this.authorUserId = authorUserId;
     }
 
     public void edit(String title, String content, String category) {
@@ -62,7 +66,7 @@ public class News {
         }
     }
 
-    public void publish(Instant publishedAt) {
+    public void publish(LocalDateTime publishedAt) {
         this.publishedAt = publishedAt;
         status = NewsStatus.PUBLIEE;
     }

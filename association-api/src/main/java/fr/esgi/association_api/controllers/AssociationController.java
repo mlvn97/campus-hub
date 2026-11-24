@@ -45,7 +45,7 @@ public class AssociationController {
         return ResponseEntity.ok(associationService.getAssociation(id));
     }
 
-    @PreAuthorize ("hasRole('ROLE_ADMIN_ASSOCIATION')")
+    @PreAuthorize("hasAnyRole('ADMIN_ASSOCIATION', 'ADMIN_CAMPUS')")
     @PostMapping
     public ResponseEntity<AssociationResponse> createAssociation(
             @Valid @RequestBody AssociationRequest request) {
@@ -54,7 +54,7 @@ public class AssociationController {
                 .body(association);
     }
 
-    @PreAuthorize ("hasRole('ROLE_ADMIN_ASSOCIATION')")
+    @PreAuthorize ("hasRole('ADMIN_ASSOCIATION')")
     @PatchMapping("/{id}")
     public ResponseEntity<AssociationResponse> updateAssociation(
             @PathVariable Long id,
@@ -62,7 +62,19 @@ public class AssociationController {
         return ResponseEntity.ok(associationService.updateAssociation(id, request));
     }
 
-    @PreAuthorize ("hasRole('ROLE_ADMIN_ASSOCIATION')")
+    @PreAuthorize("hasAnyRole('ADMIN_CAMPUS', 'ADMIN_ASSOCIATION')")
+    @PatchMapping("/{id}/suspend")
+    public ResponseEntity<AssociationResponse> suspendAssociation(@PathVariable Long id) {
+        return ResponseEntity.ok(associationService.suspendAssociation(id));
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN_CAMPUS', 'ADMIN_ASSOCIATION')")
+    @PatchMapping("/{id}/reactivate")
+    public ResponseEntity<AssociationResponse> reactivateAssociation(@PathVariable Long id) {
+        return ResponseEntity.ok(associationService.reactivateAssociation(id));
+    }
+
+    @PreAuthorize ("hasRole('ADMIN_ASSOCIATION')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteAssociation(@PathVariable Long id) {
         associationService.deleteAssociation(id);

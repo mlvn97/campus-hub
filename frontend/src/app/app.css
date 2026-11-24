@@ -1,4 +1,4 @@
-.site-nav {
+/*.site-nav {
     min-height: 80px;
     display: flex;
     flex-wrap: wrap;
@@ -21,4 +21,126 @@
 
 .account-avatar { width: 2rem; height: 2rem; border-radius: 50%; object-fit: cover; flex: none; }
 .account-initials { display: grid; place-items: center; background: #fff7ee; color: var(--campus-ink); font-size: .8rem; }
-.account-name { max-width: min(18rem, 58vw); overflow: hidden; text-overflow: ellipsis; }
+.account-name { max-width: min(18rem, 58vw); overflow: hidden; text-overflow: ellipsis; }*/
+.navbar {
+    position: sticky;
+    top: 16px;
+    z-index: 1000;
+
+    width: calc(100% - 48px);
+    margin: 16px auto 0;
+    box-sizing: border-box;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 16px 32px;
+
+    background: rgba(17, 24, 39, 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    box-shadow: 5px rgba(255, 255, 255, 0.7);
+    border-radius: 14px;
+}
+
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: white;
+    text-decoration: none;
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+.brand-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: #6366f1;
+    border-radius: 10px;
+    font-size: 20px;
+}
+
+.brand-highlight {
+    color: #818cf8;
+}
+
+.navbar-links {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+}
+
+.navbar-links a {
+    color: #cbd5e1;
+    text-decoration: none;
+    font-size: 1.3rem;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.navbar-links a:hover,
+.navbar-links a.active {
+    color: white;
+}
+
+.navbar-links a.active {
+    position: relative;
+}
+
+.navbar-links a.active::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -20px;
+    height: 3px;
+    background: #818cf8;
+    border-radius: 3px;
+}
+
+.navbar-links .account-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 16px;
+    background: #6366f1;
+    color: white;
+    border-radius: 8px;
+    transition: background 0.5s ease;
+}
+
+.navbar-links .account-link:hover,
+.navbar-links .account-link.active {
+    background: #4f46e5;
+}
+
+.navbar-links .account-link.active::after {
+    display: none;
+}
+
+@media (max-width: 650px) {
+    .navbar {
+        flex-direction: column;
+        gap: 20px;
+        padding: 16px;
+    }
+
+    .navbar-links {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .navbar-links a.active::after {
+        bottom: -6px;
+    }
+}

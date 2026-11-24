@@ -2,6 +2,7 @@ package fr.esgi.association_api.services;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
@@ -32,6 +33,12 @@ public class MembershipService {
                 .stream()
                 .map(this::toResponse)
                 .toList();
+    }
+
+    public Optional<MembershipResponse> getMyMembership(Long associationId, Long userId) {
+        associationService.assertAssociationExists(associationId);
+        return membershipRepository.findByAssociationIdAndUserId(associationId, userId)
+                .map(this::toResponse);
     }
 
     public void leave(Long associationId, Long userId, @Nullable Long successorId) {

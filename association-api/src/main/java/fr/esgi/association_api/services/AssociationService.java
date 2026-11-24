@@ -64,6 +64,20 @@ public class AssociationService {
     }
 
     @Transactional
+    public AssociationResponse suspendAssociation(Long id) {
+        Association association = findAssociation(id);
+        association.setStatus(AssociationStatus.SUSPENDED);
+        return toResponse(associationRepository.save(association));
+    }
+
+    @Transactional
+    public AssociationResponse reactivateAssociation(Long id) {
+        Association association = findAssociation(id);
+        association.setStatus(AssociationStatus.ACTIVE);
+        return toResponse(associationRepository.save(association));
+    }
+
+    @Transactional
     public void deleteAssociation(Long id) {
         Association association = findAssociation(id);
         membershipApplicationRepository.deleteAllByAssociationId(id);

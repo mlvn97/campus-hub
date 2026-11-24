@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import fr.esgi.association_api.dto.request.SubscriptionRequest;
 import fr.esgi.association_api.dto.response.SubscriptionResponse;
@@ -59,6 +60,9 @@ public class SubscriptionService {
             Long applicantUserId,
             SubscriptionRequest request) {
         checkIfAssociationExists(associationId);
+        if (isAdministrator()) {
+            throw new ForbiddenException("Les administrateurs ne peuvent pas demander à rejoindre une association.");
+        }
         if (applicationRepository.existsByAssociationIdAndUserIdAndStatus(
                 associationId, applicantUserId, SubscriptionStatus.PENDING)) {
             throw new DuplicateRequestException(applicantUserId, associationId);
@@ -145,10 +149,17 @@ public class SubscriptionService {
 
     private void requirePresident(Long associationId, Long requesterUserId) {
         checkIfAssociationExists(associationId);
-        if (!membershipRepository.existsByAssociationIdAndUserIdAndRole(
+        if (!isAdministrator() && !membershipRepository.existsByAssociationIdAndUserIdAndRole(
                 associationId, requesterUserId, MemberRole.PRESIDENT)) {
             throw new ForbiddenException("Seul le président de l'association peut gérer les demandes d'adhésion.");
         }
+    }
+
+    private boolean isAdministrator() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN_CAMPUS")
+                        || authority.getAuthority().equals("ROLE_ADMIN_ASSOCIATION"));
     }
 
     private void checkIfAssociationExists(Long associationId) {

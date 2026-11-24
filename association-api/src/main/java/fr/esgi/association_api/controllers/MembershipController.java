@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import fr.esgi.association_api.dto.request.AddMemberRequest;
+import fr.esgi.association_api.dto.request.ChangeMemberRoleRequest;
 import fr.esgi.association_api.dto.response.MembershipResponse;
-import fr.esgi.association_api.enums.MemberRole;
 import fr.esgi.association_api.services.MembershipService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +33,15 @@ public class MembershipController {
     public ResponseEntity<List<MembershipResponse>> getMembers(
             @PathVariable Long associationId) {
         return ResponseEntity.ok(membershipService.getMembers(associationId));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<MembershipResponse> getMyMembership(
+            @PathVariable Long associationId,
+            @AuthenticationPrincipal Long userId) {
+        return membershipService.getMyMembership(associationId, userId)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.noContent().build());
     }
 
     @PostMapping
@@ -64,8 +73,8 @@ public class MembershipController {
     public ResponseEntity<MembershipResponse> changeMemberRole(
             @PathVariable Long associationId,
             @PathVariable Long userId,
-            @RequestBody MemberRole role) {
-        return ResponseEntity.ok(membershipService.changeMemberRole(associationId, userId, role));
+            @Valid @RequestBody ChangeMemberRoleRequest request) {
+        return ResponseEntity.ok(membershipService.changeMemberRole(associationId, userId, request.getRole()));
     }
 
     @GetMapping ("/is-president")

@@ -27,21 +27,26 @@ export class MembershipService {
         return this.http.get<Membership[]>(this.getUrl(associationId));
     }
 
+    fetchMyMembership(associationId: number): Observable<Membership | null> {
+        return this.http.get<Membership | null>(`${this.getUrl(associationId)}/me`);
+    }
+
     addMember(associationId: number, data: AddMemberRequest): Observable<Membership> {
         return this.http.post<Membership>(this.getUrl(associationId), data);
     }
 
     changeMemberRole(associationId: number, userId: number, role: MemberRole): Observable<Membership> {
-        return this.http.patch<Membership>(`${this.getUrl(associationId)}/${userId}/role`, role);
+        const request: ChangeMemberRoleRequest = { role };
+        return this.http.patch<Membership>(`${this.getUrl(associationId)}/${userId}/role`, request);
     }
 
     removeMember(associationId: number, userId: number): Observable<void> {
         return this.http.delete<void>(`${this.getUrl(associationId)}/${userId}`);
     }
 
-    leave(associationId: number, userId: number, successorUserId: number): Observable<void> {
-        return this.http.delete<void>(`${this.getUrl(associationId)}/members/${userId}`, {
-            params: queryParams({ successorUserId })
+    leave(associationId: number, userId: number, successorId?: number): Observable<void> {
+        return this.http.delete<void>(`${this.getUrl(associationId)}/leave`, {
+            params: queryParams({ successorId })
         });
     }
 

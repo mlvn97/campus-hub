@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import fr.esgi.association_api.dto.request.SubscriptionRequest;
 import fr.esgi.association_api.dto.response.SubscriptionResponse;
-import fr.esgi.association_api.enums.SubscriptionStatus;
 import fr.esgi.association_api.services.SubscriptionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -51,6 +50,14 @@ public class SubscriptionController {
             @AuthenticationPrincipal Long userId,
             @PathVariable Long associationId,
             @PathVariable Long subscriptionId) {
-        return ResponseEntity.ok(subscriptionService.approveSubscription(userId, associationId, subscriptionId));
+        return ResponseEntity.ok(subscriptionService.approveApplication(associationId, subscriptionId, userId));
+    }
+
+    @PatchMapping("/{subscriptionId}/reject")
+    public ResponseEntity<SubscriptionResponse> rejectSubscription(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long associationId,
+            @PathVariable Long subscriptionId) {
+        return ResponseEntity.ok(subscriptionService.rejectApplication(associationId, subscriptionId, userId));
     }
 }

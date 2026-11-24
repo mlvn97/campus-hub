@@ -1,4 +1,4 @@
-<main class="home">
+<!-- main class="home">
     <section class="hero" aria-labelledby="welcome">
         <div class="hero-copy">
             <h1 id="welcome">Bienvenue sur<br>ton campus</h1>
@@ -56,4 +56,120 @@
             <a class="club" routerLink="/associations"><div class="photo technology" aria-hidden="true"></div><h3>Club tech <span class="club-arrow" aria-hidden="true">→</span></h3></a>
         </div>
     </section>
+</main-->
+
+
+<main class="home-container">
+
+  <section class="welcome">
+    <span class="welcome-label">CAMPUS HUB</span>
+    <h1>Bienvenue sur CampusHub 👋</h1>
+    <p>Découvre toute l'actualité et la vie de ton campus.</p>
+  </section>
+
+  <!-- Actualités -->
+  <section class="content-section">
+    <div class="section-header">
+      <h2><i class="bi bi-newspaper"></i> Actualités</h2>
+      <a routerLink="/news">Tout voir →</a>
+    </div>
+
+    @if (loadingNews()) {
+      <p role="status">Chargement des actualités…</p>
+    } @else if (newsError() === 401 || newsError() === 403) {
+      <p role="alert">Connecte-toi pour consulter les actualités. <a routerLink="/auth">Se connecter</a></p>
+    } @else if (newsError() !== null) {
+      <p role="alert">Impossible de charger les actualités pour le moment.</p>
+    } @else if (newsList().length === 0) {
+      <div class="empty-state">Aucune actualité pour le moment</div>
+    } @else {
+      <div class="news-grid">
+        @for (news of newsList(); track news.id) {
+          <article class="news-card">
+            <div class="news-card-top">
+              <span class="category">{{ news.category }}</span>
+            </div>
+            <h3>{{ news.title }}</h3>
+            <p>{{ news.content }}</p>
+            <a [routerLink]="['/news', news.id]">Lire l'article →</a>
+          </article>
+        }
+      </div>
+    }
+  </section>
+
+  <!-- Événements -->
+  <section class="content-section">
+    <div class="section-header">
+      <h2><i class="bi bi-calendar-event"></i> Prochains événements</h2>
+      <a routerLink="/events">Tout voir →</a>
+    </div>
+
+    @if (loadingEvents()) {
+      <p role="status">Chargement des événements…</p>
+    } @else if (eventsError() === 401 || eventsError() === 403) {
+      <p role="alert">Connecte-toi pour consulter les événements. <a routerLink="/auth">Se connecter</a></p>
+    } @else if (eventsError() !== null) {
+      <p role="alert">Impossible de charger les événements pour le moment.</p>
+    } @else if (eventList().length === 0) {
+      <div class="empty-state">Aucun événement pour le moment</div>
+    } @else {
+      <div class="events-list">
+        @for (event of eventList(); track event.id) {
+          <article class="event-card">
+            <div class="event-date">
+              <strong>{{ eventDay(event.date) }}</strong>
+              <span>{{ eventMonth(event.date) }}</span>
+            </div>
+
+            <div class="event-info">
+              <h3>{{ event.title }}</h3>
+              <p><i class="bi bi-geo-alt"></i> {{ event.location }}</p>
+            </div>
+
+            <a [routerLink]="['/events', event.id]">
+              <i class="bi bi-arrow-right"></i>
+            </a>
+          </article>
+        }
+      </div>
+    }
+  </section>
+
+  <!-- Associations -->
+  <section class="content-section">
+    <div class="section-header">
+      <h2><i class="bi bi-people"></i> Associations</h2>
+      <a routerLink="/associations">Tout voir →</a>
+    </div>
+
+    @if (loadingAssociations()) {
+      <p role="status">Chargement des associations…</p>
+    } @else if (associationsError() === 401 || associationsError() === 403) {
+      <p role="alert">Connecte-toi pour consulter les associations. <a routerLink="/auth">Se connecter</a></p>
+    } @else if (associationsError() !== null) {
+      <p role="alert">Impossible de charger les associations pour le moment.</p>
+    } @else if (associationList().length === 0) {
+      <div class="empty-state">Aucune association pour le moment</div>
+    } @else {
+      <div class="associations-grid">
+        @for (association of associationList(); track association.id) {
+          <article class="association-card">
+            <div class="association-icon">
+              <i [class]="associationIcon(association.category)"></i>
+            </div>
+
+            <h3>{{ association.name }}</h3>
+            <p>{{ associationCategory(association.category) }}</p>
+
+            <a [routerLink]="['/associations', association.id]">
+              Découvrir →
+            </a>
+          </article>
+        }
+      </div>
+    }
+  </section>
+
 </main>
+

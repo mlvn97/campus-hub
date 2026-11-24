@@ -49,6 +49,15 @@ public class NewsController {
         return service.feed(page, limit, category, associationId);
     }
 
+    @GetMapping("/gestion")
+    @Operation(summary = "Consulter les actualités que l'utilisateur peut gérer")
+    public NewsFeedResponse managedFeed(
+            @RequestParam(defaultValue = "1") @Positive int page,
+            @RequestParam(defaultValue = "20") @Positive @Max(100) int limit,
+            Authentication actor) {
+        return service.managedFeed(page, limit, actor);
+    }
+
     @GetMapping("/{id}")
     @Operation(summary = "Consulter une actualité")
     public NewsResponse get(@PathVariable @Positive long id, Authentication actor,

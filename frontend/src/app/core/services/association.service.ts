@@ -47,6 +47,14 @@ export class AssociationService {
         return this.http.delete<void>(`${this.url}/${id}`);
     }
 
+    suspendAssociation(id: number): Observable<Association> {
+        return this.http.patch<Association>(`${this.url}/${id}/suspend`, null);
+    }
+
+    reactivateAssociation(id: number): Observable<Association> {
+        return this.http.patch<Association>(`${this.url}/${id}/reactivate`, null);
+    }
+
     fetchApplications(associationId: number): Observable<Subscription[]> {
         return this.http.get<Subscription[]>(`${this.url}/${associationId}/membership-applications`);
     }
