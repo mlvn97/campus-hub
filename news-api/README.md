@@ -8,13 +8,14 @@ Ouvre Swagger à l’adresse [localhost:8083/swagger-ui.html](http://localhost:8
 
 | Méthode | Route | Résultat |
 | --- | --- | --- |
-| GET | `/api/actualites` | Fil des actualités publiées |
-| GET | `/api/actualites/{id}` | Détail d’une actualité |
-| POST | `/api/actualites` | Création d’un brouillon, avec son URL dans `Location` |
-| PATCH | `/api/actualites/{id}` | Modification du titre, du contenu ou de la catégorie |
-| PATCH | `/api/actualites/{id}/publier` | Publication d’un brouillon |
-| PATCH | `/api/actualites/{id}/archiver` | Archivage d’une actualité publiée |
-| DELETE | `/api/actualites/{id}` | Suppression, avec une réponse `204` |
+| GET | `/api/news` | Fil des actualités publiées |
+| GET | /api/news/gestion | Fil de gestion des actualités autorisées |
+| GET | `/api/news/{id}` | Détail d’une actualité |
+| POST | `/api/news` | Création d’un brouillon, avec son URL dans `Location` |
+| PATCH | `/api/news/{id}` | Modification du titre, du contenu ou de la catégorie |
+| PATCH | `/api/news/{id}/publier` | Publication d’un brouillon |
+| PATCH | `/api/news/{id}/archiver` | Archivage d’une actualité publiée |
+| DELETE | `/api/news/{id}` | Suppression, avec une réponse `204` |
 
 Pour créer une actualité liée à une association, envoie le corps JSON suivant.
 

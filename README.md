@@ -83,6 +83,24 @@ docker compose -f compose.dev.yaml up -d --build
 ```
 5. Aller sur http://localhost:4200 pour accéder à l'application.
 
+## Documentation Swagger
+
+Après le démarrage des services locaux avec Docker Compose, chaque API expose son interface Swagger et son contrat OpenAPI.
+
+| API | Swagger UI | OpenAPI JSON |
+| --- | --- | --- |
+| Comptes et profils | [Swagger](http://localhost:8080/swagger-ui.html) | [OpenAPI](http://localhost:8080/v3/api-docs) |
+| Associations | [Swagger](http://localhost:8081/swagger-ui.html) | [OpenAPI](http://localhost:8081/v3/api-docs) |
+| Événements | [Swagger](http://localhost:8082/swagger-ui.html) | [OpenAPI](http://localhost:8082/v3/api-docs) |
+| Actualités | [Swagger](http://localhost:8083/swagger-ui.html) | [OpenAPI](http://localhost:8083/v3/api-docs) |
+
+1. Dans Swagger Comptes et profils, exécute `POST /api/users/login` avec l’adresse e-mail et le mot de passe d’un compte local. Tu peux créer un compte avec `POST /api/users/register`.
+2. Copie la valeur de `token` renvoyée par la connexion.
+3. Dans le Swagger de l’API à tester, sélectionne **Authorize** et colle le jeton seul. Swagger ajoute le préfixe `Bearer`.
+4. Ouvre une opération et utilise **Try it out**. Les opérations d’écriture restent soumises aux permissions du compte.
+
+Les listes Associations et Événements utilisent les paramètres Spring `page` (à partir de 0), `size` et `sort`. Le fil `GET /api/news` utilise `page` (à partir de 1), `limit` et les filtres facultatifs `categorie` et `association`.
+
 # Déploiement et lancement sur AWS EC2
 
 ## 1. Prérequis

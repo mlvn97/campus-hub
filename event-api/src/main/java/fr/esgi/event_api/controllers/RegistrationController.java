@@ -1,5 +1,10 @@
 package fr.esgi.event_api.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+
 import java.net.URI;
 
 import org.springframework.http.ResponseEntity;
@@ -17,6 +22,7 @@ import fr.esgi.event_api.dto.response.RegistrationResponse;
 import fr.esgi.event_api.services.RegistrationService;
 import lombok.RequiredArgsConstructor;
 
+@Tag(name = "Inscriptions")
 @RestController 
 @RequiredArgsConstructor 
 @RequestMapping ("/api/events/{eventId}/registrations")
@@ -25,8 +31,9 @@ public class RegistrationController {
     private final RegistrationService registrationService;
 
     @GetMapping("/me")
+    @Operation(summary = "Consulter sa propre inscription")
     public ResponseEntity<RegistrationResponse> getMyRegistration(
-            @AuthenticationPrincipal Long userId,
+            @Parameter(hidden = true) @AuthenticationPrincipal Long userId,
             @PathVariable Long eventId) {
         var registration = registrationService.getMyRegistration(userId, eventId);
         return registration.map(ResponseEntity::ok)
@@ -34,17 +41,20 @@ public class RegistrationController {
     }
     
     @PostMapping 
+    @Operation(summary = "S’inscrire à un événement")
+    @ApiResponse(responseCode = "201", description = "Ressource créée", useReturnTypeSchema = true)
     public ResponseEntity<RegistrationResponse> registerToEvent(
-            @AuthenticationPrincipal Long userId,
+            @Parameter(hidden = true) @AuthenticationPrincipal Long userId,
             @PathVariable Long eventId,
-            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
+            @Parameter(hidden = true) @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
         RegistrationResponse response = registrationService.registerToEvent(userId, eventId, authorization);
         return ResponseEntity.created(URI.create("/api/events/" + eventId + "/registrations/" + response.getId())).body(response);
     }
 
     @PatchMapping ("/{registrationId}")
+    @Operation(summary = "Annuler une inscription")
     public ResponseEntity<RegistrationResponse> cancelRegistration(
-            @AuthenticationPrincipal Long userId,
+            @Parameter(hidden = true) @AuthenticationPrincipal Long userId,
             @PathVariable Long eventId,
             @PathVariable Long registrationId) {
         return ResponseEntity.ok(registrationService.cancelRegistration(userId, eventId, registrationId));

@@ -1,5 +1,10 @@
 package fr.esgi.association_api.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+
 import java.net.URI;
 import java.util.List;
 
@@ -19,6 +24,7 @@ import fr.esgi.association_api.services.SubscriptionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+@Tag(name = "Demandes d’adhésion")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/associations/{associationId}/subscriptions")
@@ -27,9 +33,11 @@ public class SubscriptionController {
     private final SubscriptionService subscriptionService;
 
     @PostMapping
+    @Operation(summary = "Déposer une demande")
+    @ApiResponse(responseCode = "201", description = "Ressource créée", useReturnTypeSchema = true)
     public ResponseEntity<SubscriptionResponse> submitApplication(
             @PathVariable Long associationId,
-            @AuthenticationPrincipal Long applicantUserId,
+            @Parameter(hidden = true) @AuthenticationPrincipal Long applicantUserId,
             @Valid @RequestBody SubscriptionRequest request) {
         SubscriptionResponse subscription =
                 subscriptionService.submitApplication(associationId, applicantUserId, request);
@@ -39,23 +47,26 @@ public class SubscriptionController {
     }
 
     @GetMapping
+    @Operation(summary = "Lister les demandes")
     public ResponseEntity<List<SubscriptionResponse>> getSubscriptions(
             @PathVariable Long associationId,
-            @AuthenticationPrincipal Long userId) {
+            @Parameter(hidden = true) @AuthenticationPrincipal Long userId) {
         return ResponseEntity.ok(subscriptionService.getSubscriptions(associationId, userId));
     }
 
     @PatchMapping("/{subscriptionId}/approve")
+    @Operation(summary = "Accepter une demande")
     public ResponseEntity<SubscriptionResponse> approveSubscription(
-            @AuthenticationPrincipal Long userId,
+            @Parameter(hidden = true) @AuthenticationPrincipal Long userId,
             @PathVariable Long associationId,
             @PathVariable Long subscriptionId) {
         return ResponseEntity.ok(subscriptionService.approveApplication(associationId, subscriptionId, userId));
     }
 
     @PatchMapping("/{subscriptionId}/reject")
+    @Operation(summary = "Refuser une demande")
     public ResponseEntity<SubscriptionResponse> rejectSubscription(
-            @AuthenticationPrincipal Long userId,
+            @Parameter(hidden = true) @AuthenticationPrincipal Long userId,
             @PathVariable Long associationId,
             @PathVariable Long subscriptionId) {
         return ResponseEntity.ok(subscriptionService.rejectApplication(associationId, subscriptionId, userId));

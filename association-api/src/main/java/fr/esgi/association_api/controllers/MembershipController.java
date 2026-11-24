@@ -1,5 +1,10 @@
 package fr.esgi.association_api.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+
 import java.net.URI;
 import java.util.List;
 
@@ -22,6 +27,7 @@ import fr.esgi.association_api.services.MembershipService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+@Tag(name = "Membres")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/associations/{associationId}/members")
@@ -30,21 +36,25 @@ public class MembershipController {
     private final MembershipService membershipService;
 
     @GetMapping
+    @Operation(summary = "Lister les membres")
     public ResponseEntity<List<MembershipResponse>> getMembers(
             @PathVariable Long associationId) {
         return ResponseEntity.ok(membershipService.getMembers(associationId));
     }
 
     @GetMapping("/me")
+    @Operation(summary = "Consulter sa propre adhésion")
     public ResponseEntity<MembershipResponse> getMyMembership(
             @PathVariable Long associationId,
-            @AuthenticationPrincipal Long userId) {
+            @Parameter(hidden = true) @AuthenticationPrincipal Long userId) {
         return membershipService.getMyMembership(associationId, userId)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.noContent().build());
     }
 
     @PostMapping
+    @Operation(summary = "Ajouter un membre")
+    @ApiResponse(responseCode = "201", description = "Ressource créée", content = @io.swagger.v3.oas.annotations.media.Content)
     public ResponseEntity<MembershipResponse> addMember(
             @PathVariable Long associationId,
             @Valid @RequestBody AddMemberRequest request) {
@@ -53,15 +63,19 @@ public class MembershipController {
     }
 
     @DeleteMapping("/leave")
+    @Operation(summary = "Quitter une association")
+    @ApiResponse(responseCode = "204", description = "Succès sans contenu", content = @io.swagger.v3.oas.annotations.media.Content)
     public ResponseEntity<Void> leave(
             @PathVariable Long associationId,
-            @AuthenticationPrincipal Long userId,
+            @Parameter(hidden = true) @AuthenticationPrincipal Long userId,
             @RequestParam(required = false) Long successorId) {
         membershipService.leave(associationId, userId, successorId);
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{userId}")
+    @Operation(summary = "Retirer un membre")
+    @ApiResponse(responseCode = "204", description = "Succès sans contenu", content = @io.swagger.v3.oas.annotations.media.Content)
     public ResponseEntity<Void> removeMember(
             @PathVariable Long associationId,
             @PathVariable Long userId) {
@@ -70,6 +84,7 @@ public class MembershipController {
     }
 
     @PatchMapping("/{userId}/role")
+    @Operation(summary = "Modifier le rôle d’un membre")
     public ResponseEntity<MembershipResponse> changeMemberRole(
             @PathVariable Long associationId,
             @PathVariable Long userId,
@@ -78,7 +93,8 @@ public class MembershipController {
     }
 
     @GetMapping ("/is-president")
-    public boolean isPresident(@PathVariable Long associationId, @AuthenticationPrincipal Long userId) {
+    @Operation(summary = "Vérifier si l’utilisateur préside l’association")
+    public boolean isPresident(@PathVariable Long associationId, @Parameter(hidden = true) @AuthenticationPrincipal Long userId) {
         return membershipService.isPresidentOf(associationId, userId);
     }
 }
