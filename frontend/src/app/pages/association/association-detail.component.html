@@ -1,0 +1,140 @@
+<main>
+    <a class="back-link" routerLink="/associations">← Toutes les associations</a>
+
+    @if (loading()) {
+        <p class="page-message" role="status">Chargement de l’association…</p>
+    } @else if (error() !== null) {
+        <section class="page-message" role="alert">
+            @if (error() === 404) {
+                <p>Cette association est introuvable.</p>
+            } @else if (error() === 401 || error() === 403) {
+                <p>Connecte-toi pour consulter cette association.</p>
+                <a routerLink="/auth">Se connecter</a>
+            } @else {
+                <p>Impossible de charger cette association.</p>
+                <button type="button" (click)="retry()">Réessayer</button>
+            }
+        </section>
+    } @else if (item(); as association) {
+        <article class="detail-card">
+            <div class="association-icon" aria-hidden="true">
+                <i class="bi bi-people"></i>
+            </div>
+            <div class="detail-meta">
+                <span class="category">{{ categoryLabel(association.category) }}</span>
+                <span class="status" [class.suspended]="association.status === 'SUSPENDED'">
+                    {{ association.status === 'ACTIVE' ? 'Active' : 'Suspendue' }}
+                </span>
+            </div>
+
+            <h1>{{ association.name }}</h1>
+            <section class="description" aria-labelledby="description-heading">
+                <h2 id="description-heading">À propos de l’association</h2>
+                <p>{{ association.description || 'Aucune description pour le moment.' }}</p>
+            </section>
+
+            <section class="membership" aria-labelledby="membership-heading">
+                <h2 id="membership-heading">Adhésion</h2>
+                @if (membershipActionMessage()) {
+                    <p class="success-message" role="status">{{ membershipActionMessage() }}</p>
+                }
+                @if (membershipActionError()) {
+                    <p class="action-error" role="alert">{{ membershipActionError() }}</p>
+                }
+                @if (membershipLoading()) {
+                    <p role="status">Vérification de ton adhésion…</p>
+                } @else if (membershipError()) {
+                    <p class="action-error" role="alert">{{ membershipError() }}</p>
+                    @if (membershipNeedsLogin()) {
+                        <a class="action-link" routerLink="/auth">Se connecter</a>
+                    }
+                } @else if (membership()) {
+                    <p>Tu es membre de cette association.</p>
+                    <button class="leave-button" type="button" [disabled]="membershipActionLoading()"
+                        (click)="openLeaveDialog(leaveDialog)">
+                        Quitter l’association
+                    </button>
+                } @else if (requestSent()) {
+                    <p>Ta demande d’adhésion est en attente de traitement.</p>
+                } @else if (association.status === 'SUSPENDED') {
+                    <p>Cette association est suspendue et n’accepte pas de nouvelles demandes.</p>
+                } @else if (!authenticated()) {
+                    <p>Connecte-toi pour rejoindre cette association.</p>
+                    <a class="action-link" routerLink="/auth">Se connecter</a>
+                } @else if (canRequestMembership()) {
+                    <p>Envoie une demande pour rejoindre cette association.</p>
+                    <button class="join-button" type="button" (click)="openJoinDialog(joinDialog)">
+                        Demander à rejoindre
+                    </button>
+                } @else {
+                    <p>La gestion de l’adhésion n’est pas disponible pour ce compte.</p>
+                }
+            </section>
+        </article>
+    }
+
+    <dialog #joinDialog aria-labelledby="join-heading">
+        <h2 id="join-heading">Rejoindre {{ item()?.name }}</h2>
+        <p class="dialog-intro">Présente ta demande à l’association.</p>
+        <form (ngSubmit)="requestMembership(joinDialog)">
+            <label for="join-motivation">Motivation</label>
+            <textarea id="join-motivation" name="motivation" required maxlength="1000"
+                [(ngModel)]="joinMotivation"></textarea>
+            @if (membershipActionError()) {
+                <p class="form-error" role="alert">{{ membershipActionError() }}</p>
+                @if (membershipActionNeedsLogin()) {
+                    <a class="action-link" routerLink="/auth">Se connecter</a>
+                }
+            }
+            <div class="dialog-actions">
+                <button type="button" class="cancel-button" [disabled]="membershipActionLoading()"
+                    (click)="joinDialog.close()">Annuler</button>
+                <button class="join-button" type="submit"
+                    [disabled]="membershipActionLoading() || !joinMotivation.trim()">
+                    {{ membershipActionLoading() ? 'Envoi…' : 'Envoyer la demande' }}
+                </button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog #leaveDialog aria-labelledby="leave-heading">
+        @if (item(); as association) {
+            <h2 id="leave-heading">Quitter {{ association.name }}</h2>
+            @if (membership()?.role === 'PRESIDENT') {
+                <p class="dialog-intro">Choisis le membre qui reprendra la présidence.</p>
+                @if (leaveDialogLoading()) {
+                    <p role="status">Chargement des membres…</p>
+                } @else if (leaveSuccessors().length > 0) {
+                    @if (successorLookupFailed()) {
+                        <p class="notice" role="status">Certains noms sont indisponibles ; les identifiants sont affichés.</p>
+                    }
+                    <label for="successor">Successeur</label>
+                    <select id="successor" name="successor" [(ngModel)]="successorUserId">
+                        <option [ngValue]="null">Choisir un membre</option>
+                        @for (member of leaveSuccessors(); track member.id) {
+                            <option [ngValue]="member.userId">
+                                {{ successorNames()[member.userId] || 'Membre #' + member.userId }}
+                            </option>
+                        }
+                    </select>
+                }
+            } @else {
+                <p class="dialog-intro">Confirme que tu souhaites quitter cette association.</p>
+            }
+            @if (leaveError()) {
+                <p class="form-error" role="alert">{{ leaveError() }}</p>
+            }
+            <div class="dialog-actions">
+                <button type="button" class="cancel-button" [disabled]="membershipActionLoading()"
+                    (click)="leaveDialog.close()">Annuler</button>
+                <button type="button" class="leave-button"
+                    [disabled]="leaveDialogLoading() || membershipActionLoading()
+                        || (membership()?.role === 'PRESIDENT'
+                            && (leaveSuccessors().length === 0 || successorUserId === null))"
+                    (click)="confirmLeave(leaveDialog)">
+                    {{ membershipActionLoading() ? 'Départ…' : 'Confirmer et quitter' }}
+                </button>
+            </div>
+        }
+    </dialog>
+</main>

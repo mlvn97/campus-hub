@@ -28,10 +28,10 @@ const examples: Association[] = [
 const pageSize = 3;
 
 @Component({
-    selector: 'app-directory',
+    selector: 'app-association',
     imports: [FormsModule, RouterLink],
-    templateUrl: './directory.component.html',
-    styleUrl: './directory.component.css'
+    templateUrl: './association.component.html',
+    styleUrl: './association.component.css'
 })
 export class DirectoryComponent {
     private readonly associations = inject(AssociationService);

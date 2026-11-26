@@ -68,6 +68,7 @@
                         </div>
                         <h2>{{ item.name }}</h2>
                         <p>{{ item.description || 'Aucune description pour le moment.' }}</p>
+                        <a class="detail-link" [routerLink]="['/associations', item.id]">Découvrir l’association →</a>
                         <div class="association-actions">
                             @if (!preview() && (membershipsByAssociation()[item.id] || canRequestMembership())) {
                                 <button class="join-button" type="button"

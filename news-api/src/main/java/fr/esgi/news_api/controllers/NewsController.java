@@ -8,6 +8,7 @@ import fr.esgi.news_api.dto.NewsResponse;
 import fr.esgi.news_api.dto.UpdateNewsRequest;
 import fr.esgi.news_api.services.NewsService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -61,7 +62,7 @@ public class NewsController {
     @GetMapping("/{id}")
     @Operation(summary = "Consulter une actualité")
     public NewsResponse get(@PathVariable @Positive long id, Authentication actor,
-            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
+            @Parameter(hidden = true) @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
         return service.get(id, actor, authorization);
     }
 
@@ -69,7 +70,7 @@ public class NewsController {
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Créer un brouillon")
     public ResponseEntity<NewsResponse> create(@Valid @RequestBody CreateNewsRequest request, Authentication actor,
-            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
+            @Parameter(hidden = true) @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
         NewsResponse news = service.create(request, actor, authorization);
         return ResponseEntity.created(URI.create("/api/actualites/" + news.id())).body(news);
     }
@@ -78,7 +79,7 @@ public class NewsController {
     @Operation(summary = "Modifier le titre, le contenu ou la catégorie")
     public NewsResponse update(@PathVariable @Positive long id,
             @Valid @RequestBody UpdateNewsRequest request, Authentication actor,
-            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
+            @Parameter(hidden = true) @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
         return service.update(id, request, actor, authorization);
     }
 
@@ -86,21 +87,21 @@ public class NewsController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Supprimer une actualité")
     public void delete(@PathVariable @Positive long id, Authentication actor,
-            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
+            @Parameter(hidden = true) @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
         service.delete(id, actor, authorization);
     }
 
     @PatchMapping("/{id}/publier")
-    @Operation(summary = "Publier un brouillon")
+    @Operation(summary = "Publier ou republier une actualité")
     public NewsResponse publish(@PathVariable @Positive long id, Authentication actor,
-            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
+            @Parameter(hidden = true) @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
         return service.publish(id, actor, authorization);
     }
 
     @PatchMapping("/{id}/archiver")
     @Operation(summary = "Archiver une actualité publiée")
     public NewsResponse archive(@PathVariable @Positive long id, Authentication actor,
-            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
+            @Parameter(hidden = true) @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
         return service.archive(id, actor, authorization);
     }
 }

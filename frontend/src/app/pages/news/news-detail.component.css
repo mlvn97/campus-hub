@@ -1,0 +1,133 @@
+main {
+    max-width: 900px;
+    margin: auto;
+    padding: 40px 24px 56px;
+}
+
+.back-link {
+    display: inline-block;
+    margin-bottom: 20px;
+    color: #4f46e5;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+
+.detail-card {
+    padding: clamp(1.25rem, 4vw, 2.5rem);
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    background: #fffdfa;
+}
+
+.detail-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.category,
+.status {
+    display: inline-block;
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.category {
+    color: #6366f1;
+    background: #eef2ff;
+}
+
+.status {
+    color: #047857;
+    background: #d1fae5;
+}
+
+.status.brouillon {
+    color: #92400e;
+    background: #fef3c7;
+}
+
+.status.archivee {
+    color: #4b5563;
+    background: #f3f4f6;
+}
+
+h1 {
+    margin: 18px 0 10px;
+    color: #111827;
+    font: 700 clamp(2rem, 5vw, 3rem)/1.1 Georgia, serif;
+    letter-spacing: -.035em;
+    overflow-wrap: anywhere;
+}
+
+.association {
+    margin: 0;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.association a {
+    color: #4f46e5;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.association a:hover {
+    text-decoration: underline;
+}
+
+.notice {
+    color: #6b7280;
+    font-size: 13px;
+}
+
+.content {
+    margin-top: 28px;
+    color: #374151;
+    line-height: 1.75;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+.page-message {
+    padding: 24px;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    background: #fffdfa;
+    color: #6b7280;
+}
+
+.page-message p {
+    margin: 0 0 10px;
+}
+
+.page-message a {
+    color: #4f46e5;
+    font-weight: 700;
+}
+
+.page-message button {
+    border: 0;
+    padding: 0;
+    background: none;
+    color: #4f46e5;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+@media (max-width: 650px) {
+    main {
+        padding: 28px 16px 40px;
+    }
+}

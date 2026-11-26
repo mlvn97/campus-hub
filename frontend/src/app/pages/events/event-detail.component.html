@@ -1,0 +1,103 @@
+<main>
+    <a class="back-link" routerLink="/events">← Tous les événements</a>
+
+    @if (loading()) {
+        <p class="page-message" role="status">Chargement de l’événement…</p>
+    } @else if (error() !== null) {
+        <section class="page-message" role="alert">
+            @if (error() === 404) {
+                <p>Cet événement est introuvable.</p>
+            } @else if (error() === 401 || error() === 403) {
+                <p>Connecte-toi pour consulter cet événement.</p>
+                <a routerLink="/auth">Se connecter</a>
+            } @else {
+                <p>Impossible de charger cet événement.</p>
+                <button type="button" (click)="retry()">Réessayer</button>
+            }
+        </section>
+    } @else if (item(); as event) {
+        <article class="detail-card">
+            <div class="detail-meta">
+                <span [class]="'status ' + event.status.toLowerCase()">{{ statusLabel(event.status) }}</span>
+                <time [attr.datetime]="event.date">{{ eventDate(event.date) }}</time>
+            </div>
+
+            <h1>{{ event.title }}</h1>
+            <p class="association">
+                Organisé par
+                <a [routerLink]="['/associations', event.associationId]">
+                    {{ association()?.name || 'Voir l’association' }}
+                </a>
+            </p>
+            @if (associationError()) {
+                <p class="notice" role="status">Le nom de l’association est momentanément indisponible.</p>
+            }
+
+            <dl class="event-facts">
+                <div>
+                    <dt>Lieu</dt>
+                    <dd>{{ event.location }}</dd>
+                </div>
+                <div>
+                    <dt>Capacité totale</dt>
+                    <dd>{{ event.capacity }}</dd>
+                </div>
+            </dl>
+
+            <section class="description" aria-labelledby="description-heading">
+                <h2 id="description-heading">À propos de l’événement</h2>
+                <p>{{ event.description || 'Aucune description pour le moment.' }}</p>
+            </section>
+
+            <section class="registration" aria-labelledby="registration-heading">
+                <h2 id="registration-heading">Inscription</h2>
+                @if (registrationActionMessage()) {
+                    <p class="success-message" role="status">{{ registrationActionMessage() }}</p>
+                }
+                @if (registrationActionError()) {
+                    <p class="action-error" role="alert">{{ registrationActionError() }}</p>
+                    @if (registrationActionNeedsLogin()) {
+                        <a class="action-link" routerLink="/auth">Se connecter</a>
+                    }
+                }
+                @if (!authenticated() && canRegister()) {
+                    <p>Connecte-toi pour t’inscrire à cet événement.</p>
+                    <a class="action-link" routerLink="/auth">Se connecter</a>
+                } @else if (authenticated() && registrationLoading()) {
+                    <p role="status">Vérification de ton inscription…</p>
+                } @else if (authenticated() && registrationError()) {
+                    <p class="action-error" role="alert">{{ registrationError() }}</p>
+                    @if (registrationNeedsLogin()) {
+                        <a class="action-link" routerLink="/auth">Se connecter</a>
+                    }
+                } @else if (authenticated() && registration() && registration()?.status !== 'CANCELLED') {
+                    <p>
+                        {{ registration()?.status === 'PENDING'
+                            ? 'Ta demande est en attente de confirmation.'
+                            : 'Tu es inscrit à cet événement.' }}
+                    </p>
+                    <button class="cancel-registration-button" type="button" [disabled]="registrationActionLoading()"
+                        (click)="toggleRegistration()">
+                        {{ registrationActionLoading()
+                            ? 'Mise à jour…'
+                            : registration()?.status === 'PENDING' ? 'Annuler ma demande' : 'Me désinscrire' }}
+                    </button>
+                } @else if (authenticated() && presidentCheckLoading()) {
+                    <p role="status">Vérification des droits d’inscription…</p>
+                } @else if (authenticated() && presidentCheckError()) {
+                    <p class="action-error" role="alert">Impossible de vérifier si tu organises cet événement ; l’inscription est désactivée.</p>
+                } @else if (authenticated() && canRegister()) {
+                    <p>Les inscriptions sont ouvertes.</p>
+                    <button class="register-button" type="button" [disabled]="registrationActionLoading()"
+                        (click)="toggleRegistration()">
+                        {{ registrationActionLoading() ? 'Inscription…' : 'M’inscrire' }}
+                    </button>
+                } @else if (authenticated() && isPresident()) {
+                    <p>Les responsables de l’association ne peuvent pas s’inscrire à leur événement.</p>
+                } @else {
+                    <p>Les inscriptions ne sont pas ouvertes pour cet événement.</p>
+                }
+            </section>
+        </article>
+    }
+</main>
