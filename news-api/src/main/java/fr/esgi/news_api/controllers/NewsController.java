@@ -92,7 +92,7 @@ public class NewsController {
     }
 
     @PatchMapping("/{id}/publier")
-    @Operation(summary = "Publier un brouillon")
+    @Operation(summary = "Publier ou republier une actualité")
     public NewsResponse publish(@PathVariable @Positive long id, Authentication actor,
             @Parameter(hidden = true) @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
         return service.publish(id, actor, authorization);

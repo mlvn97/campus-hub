@@ -129,6 +129,18 @@ class NewsApiApplicationTests {
                         .param("categorie", "Culture").param("association", "101"))
                 .andExpect(jsonPath("$.totalItems").value(0));
         mvc.perform(get(news).header("Authorization", STUDENT)).andExpect(status().isNotFound());
+        mvc.perform(patch(news).header("Authorization", PRESIDENT).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"Correction après archivage\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("Correction après archivage"))
+                .andExpect(jsonPath("$.status").value("ARCHIVEE"));
+        mvc.perform(patch(news + "/publier").header("Authorization", PRESIDENT))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("PUBLIEE"))
+                .andExpect(jsonPath("$.publishedAt").isNotEmpty());
+        mvc.perform(get(BASE).header("Authorization", STUDENT)
+                        .param("categorie", "Culture").param("association", "101"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.totalItems").value(1));
         mvc.perform(delete(news).header("Authorization", PRESIDENT)).andExpect(status().isNoContent());
         mvc.perform(get(news).header("Authorization", CAMPUS)).andExpect(status().isNotFound());
     }

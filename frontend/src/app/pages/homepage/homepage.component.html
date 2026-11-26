@@ -144,11 +144,11 @@
     </div>
 
     @if (loadingAssociations()) {
-      <p role="status">Chargement des associations…</p>
+      <div class="empty-state" role="status">Chargement des associations…</div>
     } @else if (associationsError() === 401 || associationsError() === 403) {
-      <p role="alert">Connecte-toi pour consulter les associations. <a routerLink="/auth">Se connecter</a></p>
+      <div class="empty-state" role="alert">Connecte-toi pour consulter les associations. <a routerLink="/auth">Se connecter</a></div>
     } @else if (associationsError() !== null) {
-      <p role="alert">Impossible de charger les associations pour le moment.</p>
+      <div class="empty-state" role="alert">Impossible de charger les associations pour le moment.</div>
     } @else if (associationList().length === 0) {
       <div class="empty-state">Aucune association pour le moment</div>
     } @else {

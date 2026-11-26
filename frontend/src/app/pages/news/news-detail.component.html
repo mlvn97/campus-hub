@@ -1,0 +1,47 @@
+<main>
+    <a class="back-link" routerLink="/news">← Toutes les actualités</a>
+
+    @if (loading()) {
+        <p class="page-message" role="status">Chargement de l’actualité…</p>
+    } @else if (error() !== null) {
+        <section class="page-message" role="alert">
+            @if (error() === 404) {
+                <p>Cette actualité est introuvable.</p>
+            } @else if (error() === 401 || error() === 403) {
+                <p>Connecte-toi pour consulter cette actualité.</p>
+                <a routerLink="/auth">Se connecter</a>
+            } @else {
+                <p>Impossible de charger cette actualité.</p>
+                <button type="button" (click)="retry()">Réessayer</button>
+            }
+        </section>
+    } @else if (item(); as news) {
+        <article class="detail-card">
+            <div class="detail-meta">
+                <span class="category">{{ news.category }}</span>
+                <span [class]="'status ' + news.status.toLowerCase()">{{ statusLabel(news.status) }}</span>
+                @if (news.publishedAt; as date) {
+                    <time [attr.datetime]="date">{{ publishedDate(date) }}</time>
+                }
+            </div>
+
+            <h1>{{ news.title }}</h1>
+
+            <p class="association">
+                @if (news.associationId === null) {
+                    Actualité du campus
+                } @else {
+                    Publiée par
+                    <a [routerLink]="['/associations', news.associationId]">
+                        {{ association()?.name || 'Voir l’association' }}
+                    </a>
+                }
+            </p>
+            @if (associationError()) {
+                <p class="notice" role="status">Le nom de l’association est momentanément indisponible.</p>
+            }
+
+            <div class="content">{{ news.content }}</div>
+        </article>
+    }
+</main>

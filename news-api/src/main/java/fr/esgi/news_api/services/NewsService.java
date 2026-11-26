@@ -89,7 +89,7 @@ public class NewsService {
     @Transactional
     public NewsResponse update(long id, UpdateNewsRequest request, Authentication actor, String authorization) {
         News news = managedNews(id, actor, authorization);
-        requireStatus(news, NewsStatus.BROUILLON);
+        requireStatus(news, NewsStatus.BROUILLON, NewsStatus.ARCHIVEE);
         news.edit(request.title(), request.content(), request.category());
         return NewsResponse.from(news);
     }
@@ -102,7 +102,7 @@ public class NewsService {
     @Transactional
     public NewsResponse publish(long id, Authentication actor, String authorization) {
         News news = managedNews(id, actor, authorization);
-        requireStatus(news, NewsStatus.BROUILLON);
+        requireStatus(news, NewsStatus.BROUILLON, NewsStatus.ARCHIVEE);
         news.publish(LocalDateTime.now());
         return NewsResponse.from(news);
     }
@@ -143,10 +143,13 @@ public class NewsService {
         }
     }
 
-    private static void requireStatus(News news, NewsStatus expected) {
-        if (news.getStatus() != expected) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Transition incompatible avec le statut actuel");
+    private static void requireStatus(News news, NewsStatus... expectedStatuses) {
+        for (NewsStatus expected : expectedStatuses) {
+            if (news.getStatus() == expected) {
+                return;
+            }
         }
+        throw new ResponseStatusException(HttpStatus.CONFLICT, "Transition incompatible avec le statut actuel");
     }
 
     private static ResponseStatusException notFound() {

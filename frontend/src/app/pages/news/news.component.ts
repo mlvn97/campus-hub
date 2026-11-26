@@ -71,7 +71,6 @@ export class NewsComponent {
     protected readonly loading = signal(true);
     protected readonly preview = signal(false);
     protected readonly error = signal<number | null>(null);
-    protected readonly selected = signal<News | null>(null);
     protected readonly editing = signal<News | null>(null);
     protected newsDraft: CreateNewsRequest = this.emptyNews();
     protected readonly confirmation = signal<{ news: News; action: 'archive' | 'delete'; message: string } | null>(null);
@@ -145,11 +144,6 @@ export class NewsComponent {
         return this.preview() ? ['Vie étudiante', 'Sport'] : this.categoryOptions();
     }
 
-    protected read(item: News, dialog: HTMLDialogElement): void {
-        this.selected.set(item);
-        dialog.showModal();
-    }
-
     protected openCreateDialog(dialog: HTMLDialogElement): void {
         this.editing.set(null);
         const association = this.presidentAssociations();
@@ -178,7 +172,7 @@ export class NewsComponent {
     protected saveNews(form: NgForm, dialog: HTMLDialogElement, publish: boolean): void {
         const selected = this.editing();
         if (this.savingNews() || form.invalid || (!selected && !this.canManageNews())
-            || (selected && selected.status !== 'BROUILLON')) {
+            || (selected && selected.status !== 'BROUILLON' && selected.status !== 'ARCHIVEE')) {
             return;
         }
 
@@ -200,6 +194,26 @@ export class NewsComponent {
                     this.newsMessage.set(publish
                         ? `L’actualité « ${item.title} » a été publiée.`
                         : `Le brouillon « ${item.title} » a été enregistré.`);
+                    this.load(1);
+                    this.loadManagement(1);
+                },
+                error: error => this.handleNewsError(error)
+            });
+    }
+
+    protected republishArchived(item: News): void {
+        if (item.status !== 'ARCHIVEE' || this.savingNews()) {
+            return;
+        }
+
+        this.savingNews.set(true);
+        this.newsError.set('');
+        this.news.publishNews(item.id)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: published => {
+                    this.savingNews.set(false);
+                    this.newsMessage.set(`L’actualité « ${published.title} » a été republiée.`);
                     this.load(1);
                     this.loadManagement(1);
                 },

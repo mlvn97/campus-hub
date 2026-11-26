@@ -79,6 +79,7 @@
                             <span><i class="bi bi-people" aria-hidden="true"></i>{{ event.capacity }} places</span>
                         </p>
                         <p class="description">{{ event.description || 'Aucune description pour le moment.' }}</p>
+                        <a class="detail-link" [routerLink]="['/events', event.id]">Voir les détails →</a>
                         @if (!preview() && authenticated() && (canRegister(event) || registrations()[event.id])) {
                             <div class="event-actions">
                                 @if (registrations()[event.id]; as registration) {

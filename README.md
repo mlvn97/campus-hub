@@ -19,53 +19,49 @@ Chaque API tourne sur son propre port:
 
 Le frontend est développé avec le framework Angular 22.
 
-# Fonctionnalités
+# Fonctionnalités disponibles
+
+Les sections API décrivent les opérations exposées par les services. La section frontend se limite aux parcours raccordés à ces API. Toutes les routes métier nécessitent un jeton JWT, sauf l'inscription et la connexion.
 
 ## User API
-Le socle commun de la plateforme.
-Elle permet:
-- l'inscription et la connexion
-- la consultation et la modification de son profil
-- la recherche d'utilisateurs (paginée et filtrable par rôle)
+- Créer un compte étudiant et se connecter pour obtenir un jeton JWT.
+- Consulter un utilisateur par identifiant.
+- Consulter son profil ou un profil par identifiant, et modifier son propre profil (bio, genre et photo).
+- Un administrateur du campus peut modifier un profil par identifiant.
 
 ## Association API
-Gestion de la vie des associations étudiantes, leurs membres et les demandes d'adhésion.
-Elle permet:
-- CRUD complet sur les associations
-- la gestion des membres (ajouter, retirer, changer le rôle), réservée aux rôles `ADMIN_ASSOCIATION` et `ADMIN_CAMPUS`
-- la soumission d'une demande d'adhésion, dont l'acceptation ou le refus est réservé au président de l'association
-- le départ du président, nécessitant la désignation d'un successeur membre de l'association
-- une seule demande d'adhésion en attente par étudiant et par association
-- un utilisateur ne peut être président que d'une seule association à la fois
-- accéder à la liste des associations (paginée et filtrable par catégorie et statut)
-- accéder à la liste des membres d'une association
+- Lister les associations avec pagination et filtres par catégorie et statut, ou consulter une association par identifiant.
+- Créer une association (`ADMIN_ASSOCIATION`, `ADMIN_CAMPUS`), modifier ou supprimer une association (`ADMIN_ASSOCIATION`), et suspendre ou réactiver une association (les deux rôles administratifs).
+- Consulter les membres d'une association et sa propre adhésion.
+- Soumettre une demande d'adhésion. Les administrateurs ne peuvent pas déposer de demande; une même personne ne peut avoir qu'une demande en attente par association ni demander à rejoindre une association dont elle est déjà membre.
+- Les présidents et les administrateurs peuvent consulter, accepter ou refuser les demandes. L'acceptation ajoute la personne comme membre.
+- Quitter une association. Un président doit désigner comme successeur un autre membre qui n'est pas déjà président.
+- Les rôles administratifs peuvent retirer un membre et modifier son rôle. Un utilisateur ne peut pas présider plusieurs associations.
 
 ## Event API
-Gestion des évènements organise*és par les associations, les inscriptions et la liste d'attente automatique.
-Elle permet:
-- CRUD complet sur les évènements
-- l'inscription à un évènement (bascule en liste d'attente si complet)
-- la désinscription d'un évènement
-- la consultation des inscrits et la liste d'attente d'un évènement
-- accéder à la liste des évènements (paginés, filtrables par statut, par association, par date)
-- l'annulation d'un évènement
+- Lister les événements avec pagination et filtres par statut, association et date, ou consulter un événement par identifiant.
+- Créer un événement en brouillon. Seul un brouillon peut être modifié; le président de l'association peut changer son statut, notamment le publier ou l'annuler.
+- S'inscrire à un événement et consulter sa propre inscription. Le président de l'association organisatrice ne peut pas s'inscrire à son événement.
+- Quand la capacité est atteinte, les nouvelles inscriptions passent en attente. L'annulation d'une inscription confirmée fait passer en confirmé la première inscription en attente.
+- Annuler sa propre inscription.
+
+L'API n'expose pas d'opération pour supprimer un événement ni pour consulter la liste complète de ses inscrits.
 
 ## News API
-Gestion du fil d'actualités publié par les associations et l'administration.
-Elle permet:
-- CRUD complet sur les actualités
-- publication et archivage d'une actualité
-- fil d'actualités (paginé et filtrable par catégorie et par association)
+- Consulter le fil des actualités publiées, paginé et filtrable par catégorie et association, ou consulter une actualité par identifiant.
+- Consulter un fil de gestion des actualités accessibles à l'utilisateur.
+- Créer une actualité en brouillon; modifier un brouillon ou une actualité archivée.
+- Publier un brouillon, republier une actualité archivée, archiver une actualité publiée et supprimer une actualité gérée par l'utilisateur.
+- Un président peut créer des actualités pour son association et gérer celles qu'il a rédigées. L'administrateur du campus peut gérer toutes les actualités.
 
 ## Frontend
-Le frontend permet:
-- l'inscription et connexion
-- la consultation et la modification de son profil
-- la consultation de l'annuaire des associations avec détail et membres
-- la soumission d'une demande d'adhésion à une association
-- la consultation du calendrier ou de la liste des évènements avec filtre par statut et association
-- l'inscription et la désincription d'un évènement
-- l'affichage du fil d'actualités avec filtre par catégorie
+- Créer un compte, se connecter, consulter et modifier son profil.
+- Parcourir les actualités, événements et associations après connexion; les pages de détail utilisent les identifiants fournis par les API.
+- Filtrer les actualités par catégorie et association, les événements par statut et association, et les associations par catégorie et statut.
+- Depuis une association, envoyer une demande d'adhésion ou quitter l'association.
+- Depuis un événement, consulter son inscription, s'inscrire ou se désinscrire.
+- Selon ses droits, créer, suspendre ou réactiver une association; consulter les membres, en retirer ou modifier leur rôle; et traiter les demandes d'adhésion.
+- Selon ses droits, créer et gérer les événements. Pour les actualités, créer un brouillon, modifier ou supprimer une actualité gérée, publier, archiver et republier une actualité archivée.
 
 <br>
 

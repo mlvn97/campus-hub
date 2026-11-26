@@ -66,9 +66,9 @@
                         </div>
                         <h2>{{ item.title }}</h2>
                         <p class="excerpt">{{ item.content }}</p>
-                        <button class="read-button" type="button" (click)="read(item, articleDialog)">
+                        <a class="read-button" [routerLink]="['/news', item.id]">
                             Lire l’actualité <span aria-hidden="true">→</span>
-                        </button>
+                        </a>
                     </div>
                 </article>
             } @empty {
@@ -120,12 +120,19 @@
                                 <p class="excerpt">{{ item.content }}</p>
                                 <div class="management-actions">
                                     <button type="button" class="manage-button" (click)="openEditDialog(item, newsDialog)">
-                                        {{ item.status === 'BROUILLON' ? 'Modifier le brouillon' : 'Gérer' }}
+                                        {{ item.status === 'BROUILLON' ? 'Modifier le brouillon'
+                                            : item.status === 'ARCHIVEE' ? 'Modifier l’archive' : 'Gérer' }}
                                     </button>
                                     @if (item.status === 'PUBLIEE') {
                                         <button type="button" class="archive-button"
                                             (click)="requestNewsConfirmation(item, 'archive', newsConfirmDialog)">
                                             Archiver
+                                        </button>
+                                    }
+                                    @if (item.status === 'ARCHIVEE') {
+                                        <button type="button" class="publish-button" [disabled]="savingNews()"
+                                            (click)="republishArchived(item)">
+                                            {{ savingNews() ? 'Publication…' : 'Republier' }}
                                         </button>
                                     }
                                     <button type="button" class="delete-button"
@@ -152,37 +159,26 @@
         </section>
     }
 
-    <dialog #articleDialog aria-labelledby="article-title">
-        @if (selected(); as item) {
-            <span class="eyebrow">{{ item.category }}</span>
-            <h2 id="article-title">{{ item.title }}</h2>
-            @if (item.publishedAt; as date) {
-                <time [attr.datetime]="date">{{ shortDate(date) }}</time>
-            }
-            <p class="full-text">{{ item.content }}</p>
-        }
-        <form method="dialog">
-            <button type="submit">Fermer</button>
-        </form>
-    </dialog>
-
     <dialog #newsDialog class="news-management-dialog" aria-labelledby="news-dialog-heading">
         <h2 id="news-dialog-heading">
             @if (editing(); as item) {
-                {{ item.status === 'BROUILLON' ? 'Modifier le brouillon' : 'Gérer l’actualité' }}
+                {{ item.status === 'BROUILLON' ? 'Modifier le brouillon'
+                    : item.status === 'ARCHIVEE' ? 'Modifier l’actualité archivée' : 'Gérer l’actualité' }}
             } @else {
                 Créer une actualité
             }
         </h2>
-        @if (editing() && editing()?.status !== 'BROUILLON') {
-            <p class="dialog-intro">Seuls les brouillons peuvent être modifiés. Les informations sont en lecture seule.</p>
+        @if (editing()?.status === 'PUBLIEE') {
+            <p class="dialog-intro">Les actualités publiées sont en lecture seule. Archive-la pour la modifier.</p>
+        } @else if (editing()?.status === 'ARCHIVEE') {
+            <p class="dialog-intro">Modifie l’actualité archivée ou republie-la après tes changements.</p>
         } @else if (!editing()) {
             <p class="dialog-intro">L’actualité sera créée en brouillon.</p>
         }
         <form #newsForm="ngForm">
             <label>Association
                 <select name="associationId" [required]="!campusAdmin()" [(ngModel)]="newsDraft.associationId"
-                    [disabled]="savingNews() || (!!editing() && editing()?.status !== 'BROUILLON')">
+                    [disabled]="savingNews() || !!editing()">
                     @if (campusAdmin()) {
                         <option [ngValue]="null">Actualité du campus</option>
                         @for (association of associationsList(); track association.id) {
@@ -198,15 +194,15 @@
             </label>
             <label>Titre
                 <input name="title" required minlength="2" maxlength="200" [(ngModel)]="newsDraft.title"
-                    [disabled]="savingNews() || (!!editing() && editing()?.status !== 'BROUILLON')">
+                    [disabled]="savingNews() || editing()?.status === 'PUBLIEE'">
             </label>
             <label>Catégorie
                 <input name="newsCategory" required maxlength="80" [(ngModel)]="newsDraft.category"
-                    [disabled]="savingNews() || (!!editing() && editing()?.status !== 'BROUILLON')">
+                    [disabled]="savingNews() || editing()?.status === 'PUBLIEE'">
             </label>
             <label>Contenu
                 <textarea name="content" required maxlength="50000" [(ngModel)]="newsDraft.content"
-                    [disabled]="savingNews() || (!!editing() && editing()?.status !== 'BROUILLON')"></textarea>
+                    [disabled]="savingNews() || editing()?.status === 'PUBLIEE'"></textarea>
             </label>
             @if (editing(); as item) {
                 <p class="readonly-status">Statut : {{ item.status }}</p>
@@ -214,14 +210,14 @@
             <div class="dialog-actions">
                 <button type="button" class="cancel-button" [disabled]="savingNews()"
                     (click)="newsDialog.close()">Annuler les modifications</button>
-                @if (!editing() || editing()?.status === 'BROUILLON') {
+                @if (!editing() || editing()?.status === 'BROUILLON' || editing()?.status === 'ARCHIVEE') {
                     <button type="button" class="draft-button" [disabled]="savingNews() || newsForm.invalid"
                         (click)="saveNews(newsForm, newsDialog, false)">
-                        Garder en brouillon
+                        {{ editing()?.status === 'ARCHIVEE' ? 'Enregistrer les modifications' : 'Garder en brouillon' }}
                     </button>
                     <button type="button" class="publish-button" [disabled]="savingNews() || newsForm.invalid"
                         (click)="saveNews(newsForm, newsDialog, true)">
-                        Publier
+                        {{ editing()?.status === 'ARCHIVEE' ? 'Enregistrer et republier' : 'Publier' }}
                     </button>
                 }
             </div>
