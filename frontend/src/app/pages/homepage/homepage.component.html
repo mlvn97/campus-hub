@@ -1,64 +1,3 @@
-<!-- main class="home">
-    <section class="hero" aria-labelledby="welcome">
-        <div class="hero-copy">
-            <h1 id="welcome">Bienvenue sur<br>ton campus</h1>
-            <div class="hero-actions">
-                <a class="button primary" routerLink="/events">Voir les événements</a>
-                <a class="button secondary" routerLink="/associations">Trouver une association</a>
-            </div>
-        </div>
-        <div class="photo campus" role="img" aria-label="Des étudiants discutent dans la cour du campus"></div>
-    </section>
-
-    <div class="highlights">
-        <section class="panel" aria-labelledby="featured">
-            <h2 id="featured">À la une</h2>
-            <article class="feature">
-                <div class="photo forum" role="img" aria-label="Stands du forum des associations"></div>
-                <div>
-                    <h3>Forum des associations</h3>
-                    <p>Viens rencontrer les associations du campus, découvrir leurs projets et trouver celles qui te correspondent !</p>
-                    <a class="read-more" routerLink="/news">Lire l’actualité <span aria-hidden="true">→</span></a>
-                </div>
-            </article>
-        </section>
-        <section class="panel" aria-labelledby="upcoming">
-            <h2 id="upcoming">Prochains événements</h2>
-            <ul class="events">
-                <li>
-                    <a routerLink="/events">
-                        <span class="event-icon">
-                            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4m8-4v4"/></svg>
-                        </span>
-                        <strong>Atelier photo</strong><span class="event-time">Jeudi · 18 h</span>
-                    </a>
-                </li>
-                <li>
-                    <a routerLink="/events">
-                        <span class="event-icon">
-                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h12v5c0 5-3 8-6 8S6 14 6 9Zm0 2H2v2a5 5 0 0 0 5 5m11-7h4v2a5 5 0 0 1-5 5m-5 4v4m-4 0h8"/></svg>
-                        </span>
-                        <strong>Tournoi du campus</strong><span class="event-time">Vendredi · 12 h</span>
-                    </a>
-                </li>
-            </ul>
-        </section>
-    </div>
-
-    <section class="clubs" aria-labelledby="discover">
-        <div class="clubs-heading">
-            <h2 id="discover">Les associations à découvrir</h2>
-            <a class="read-more" routerLink="/associations">Voir toutes les associations <span aria-hidden="true">→</span></a>
-        </div>
-        <div class="club-grid">
-            <a class="club" routerLink="/associations"><div class="photo photography" aria-hidden="true"></div><h3>Club photo <span class="club-arrow" aria-hidden="true">→</span></h3></a>
-            <a class="club" routerLink="/associations"><div class="photo sports" aria-hidden="true"></div><h3>Bureau des sports <span class="club-arrow" aria-hidden="true">→</span></h3></a>
-            <a class="club" routerLink="/associations"><div class="photo technology" aria-hidden="true"></div><h3>Club tech <span class="club-arrow" aria-hidden="true">→</span></h3></a>
-        </div>
-    </section>
-</main-->
-
-
 <main class="home-container">
 
   <section class="welcome">
@@ -75,11 +14,11 @@
     </div>
 
     @if (loadingNews()) {
-      <p role="status">Chargement des actualités…</p>
+      <div class="empty-state" role="status">Chargement des actualités…</div>
     } @else if (newsError() === 401 || newsError() === 403) {
-      <p role="alert">Connecte-toi pour consulter les actualités. <a routerLink="/auth">Se connecter</a></p>
+      <div class="empty-state" role="alert">Connecte-toi pour consulter les actualités. <a routerLink="/auth">Se connecter</a></div>
     } @else if (newsError() !== null) {
-      <p role="alert">Impossible de charger les actualités pour le moment.</p>
+      <div class="empty-state" role="alert">Impossible de charger les actualités pour le moment.</div>
     } @else if (newsList().length === 0) {
       <div class="empty-state">Aucune actualité pour le moment</div>
     } @else {
@@ -106,11 +45,11 @@
     </div>
 
     @if (loadingEvents()) {
-      <p role="status">Chargement des événements…</p>
+      <div class="empty-state" role="status">Chargement des événements…</div>
     } @else if (eventsError() === 401 || eventsError() === 403) {
-      <p role="alert">Connecte-toi pour consulter les événements. <a routerLink="/auth">Se connecter</a></p>
+      <div class="empty-state" role="alert">Connecte-toi pour consulter les événements. <a routerLink="/auth">Se connecter</a></div>
     } @else if (eventsError() !== null) {
-      <p role="alert">Impossible de charger les événements pour le moment.</p>
+      <div class="empty-state" role="alert">Impossible de charger les événements pour le moment.</div>
     } @else if (eventList().length === 0) {
       <div class="empty-state">Aucun événement pour le moment</div>
     } @else {
