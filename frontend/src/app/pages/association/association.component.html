@@ -85,7 +85,7 @@
                                     }
                                 </button>
                             }
-                            @if (!preview() && canManage()) {
+                            @if (!preview() && (canManage() || membershipsByAssociation()[item.id]?.role === 'PRESIDENT')) {
                                 <button class="manage-button" type="button" (click)="openManageDialog(item, manageDialog)">
                                     <i class="bi bi-gear" aria-hidden="true"></i> Gérer
                                 </button>
@@ -186,23 +186,25 @@
                                     <strong>{{ userName(member.userId) }} · {{ member.role }}</strong>
                                     <time [attr.datetime]="member.joinedAt">Depuis le {{ formatJoinedAt(member.joinedAt) }}</time>
                                 </div>
-                                <div class="member-actions">
-                                    <select [name]="'role-' + member.userId" [(ngModel)]="memberRoles[member.userId]"
-                                        [disabled]="managingMemberId() !== null">
-                                        @for (role of memberRoleOptions; track role) {
-                                            <option [value]="role">{{ role }}</option>
-                                        }
-                                    </select>
-                                    <button type="button" class="change-role-button"
-                                        [disabled]="managingMemberId() !== null || memberRoles[member.userId] === member.role"
-                                        (click)="changeMemberRole(member)">
-                                        Changer le rôle
-                                    </button>
-                                    <button type="button" class="exclude-button" [disabled]="managingMemberId() !== null"
-                                        (click)="excludeMember(member, confirmationDialog)">
-                                        Exclure
-                                    </button>
-                                </div>
+                                @if (canManage()) {
+                                    <div class="member-actions">
+                                        <select [name]="'role-' + member.userId" [(ngModel)]="memberRoles[member.userId]"
+                                            [disabled]="managingMemberId() !== null">
+                                            @for (role of memberRoleOptions; track role) {
+                                                <option [value]="role">{{ role }}</option>
+                                            }
+                                        </select>
+                                        <button type="button" class="change-role-button"
+                                            [disabled]="managingMemberId() !== null || memberRoles[member.userId] === member.role"
+                                            (click)="changeMemberRole(member)">
+                                            Changer le rôle
+                                        </button>
+                                        <button type="button" class="exclude-button" [disabled]="managingMemberId() !== null"
+                                            (click)="excludeMember(member, confirmationDialog)">
+                                            Exclure
+                                        </button>
+                                    </div>
+                                }
                             </li>
                         } @empty {
                             <li class="list-empty">Aucun membre pour le moment.</li>
@@ -237,19 +239,21 @@
                     </ul>
                 </section>
             }
-            <div class="manage-footer">
-                @if (association.status === 'ACTIVE') {
-                    <button type="button" class="suspend-button" [disabled]="suspending()"
-                        (click)="suspendAssociation(confirmationDialog)">
-                        {{ suspending() ? 'Suspension…' : 'Suspendre l’association' }}
-                    </button>
-                } @else {
-                    <button type="button" class="restore-button" [disabled]="reactivating()"
-                        (click)="reactivateAssociation(confirmationDialog)">
-                        {{ reactivating() ? 'Rétablissement…' : 'Rétablir l’association' }}
-                    </button>
-                }
-            </div>
+            @if (canManage()) {
+                <div class="manage-footer">
+                    @if (association.status === 'ACTIVE') {
+                        <button type="button" class="suspend-button" [disabled]="suspending()"
+                            (click)="suspendAssociation(confirmationDialog)">
+                            {{ suspending() ? 'Suspension…' : 'Suspendre l’association' }}
+                        </button>
+                    } @else {
+                        <button type="button" class="restore-button" [disabled]="reactivating()"
+                            (click)="reactivateAssociation(confirmationDialog)">
+                            {{ reactivating() ? 'Rétablissement…' : 'Rétablir l’association' }}
+                        </button>
+                    }
+                </div>
+            }
         }
     </dialog>
 

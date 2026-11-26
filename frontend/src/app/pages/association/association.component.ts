@@ -33,7 +33,7 @@ const pageSize = 3;
     templateUrl: './association.component.html',
     styleUrl: './association.component.css'
 })
-export class DirectoryComponent {
+export class AssociationComponent {
     private readonly associations = inject(AssociationService);
     private readonly auth = inject(AuthService);
     private readonly memberships = inject(MembershipService);
